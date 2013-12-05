@@ -1,0 +1,21 @@
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="infinite_common.twig.debug_extension" class="Infinite\CommonBundle\Twig\DebugExtension">
+            <tag name="twig.extension" />
+        </service>
+
+        <service id="infinite_common.twig.site_extension" class="Infinite\CommonBundle\Twig\SiteExtension">
+            <argument type="service" id="infinite_common.twig.site_global" />
+            <tag name="twig.extension" />
+        </service>
+
+        <service id="infinite_common.twig.site_global" class="Infinite\CommonBundle\Twig\SiteGlobal">
+            <call method="setContainer">
+                <argument type="service" id="service_container" />
+            </call>
+        </service>
+    </services>
+</container>

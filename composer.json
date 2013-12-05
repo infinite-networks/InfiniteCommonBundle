@@ -1,0 +1,14 @@
+{
+    "name": "infinite-networks/common-bundle",
+    "description": "Infinite Networks common helpers",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Tim Nagel",
+            "email": "t.nagel@infinite.net.au"
+        }
+    ],
+    "require": {
+
+    }
+}
