@@ -23,7 +23,7 @@ class SiteExtension extends \Twig_Extension
     public function getGlobals()
     {
         return array(
-            $this->siteGlobal
+            'site' => $this->siteGlobal,
         );
     }
 

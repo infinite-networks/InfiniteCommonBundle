@@ -25,9 +25,9 @@ class SiteGlobal implements ContainerAwareInterface
     /**
      * Stores breadcrumbs for display.
      *
-     * @var \SplQueue
+     * @var array
      */
-    public $breadcrumbs;
+    public $breadcrumbs = array();
 
     /**
      * Stores the current request time.
@@ -45,8 +45,18 @@ class SiteGlobal implements ContainerAwareInterface
 
     public function __construct()
     {
-        $this->breadcrumbs = new \SplQueue;
         $this->date = new \DateTime;
+    }
+
+    /**
+     * Adds another breadcrumb to the breadcrumb queue.
+     *
+     * @param string $crumb
+     * @param string|null $path
+     */
+    public function addBreadcrumb($crumb, $path = null)
+    {
+        array_push($this->breadcrumbs, array($crumb, $path));
     }
 
     /**
