@@ -31,11 +31,12 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
-                ->booleanNode('twig')->defaultTrue()->end()
+                ->booleanNode('form')->defaultTrue()->end()
                 ->arrayNode('menus')
                     ->example(array('navigation'))
                     ->prototype('scalar')->end()
                 ->end()
+                ->booleanNode('twig')->defaultTrue()->end()
             ->end();
 
         return $treeBuilder;

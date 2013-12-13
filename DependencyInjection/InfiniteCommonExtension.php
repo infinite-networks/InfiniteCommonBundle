@@ -26,6 +26,11 @@ class InfiniteCommonExtension extends Extension
 
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
 
+        // Form factory wrapper
+        if ($config['form']) {
+            $loader->load('form.xml');
+        }
+
         // We've got a menu so we need to load the menu configuration
         if ($config['menus']) {
             $loader->load('menu.xml');
