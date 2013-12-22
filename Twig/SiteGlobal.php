@@ -109,4 +109,16 @@ class SiteGlobal implements ContainerAwareInterface
     {
         return $this->container->getParameter('site.version');
     }
+
+    /**
+     * Sets an existing breadcrumb at a specific position to new values.
+     *
+     * @param int $position
+     * @param string $crumb
+     * @param string|null $path
+     */
+    public function setBreadcrumb($position, $crumb, $path = null)
+    {
+        $this->breadcrumbs[$position] = array($crumb, $path);
+    }
 }
