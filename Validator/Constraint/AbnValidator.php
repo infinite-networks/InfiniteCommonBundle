@@ -11,7 +11,6 @@
 
 namespace Infinite\CommonBundle\Validator\Constraint;
 
-use Infinite\CommonBundle\Validator\Constraint\Abn;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 
