@@ -38,7 +38,7 @@ class InfiniteCommonExtension extends Extension
 
         foreach ($config['menus'] as $menu) {
             $definition = new DefinitionDecorator('infinite_common.menu_prototype');
-            $definition->setFactoryService('infinite_common.builder');
+            $definition->setFactoryService('infinite_common.menu.builder');
             $definition->setFactoryMethod('buildMenu');
             $definition->addArgument($menu);
             $definition->addTag('knp_menu.menu', array(

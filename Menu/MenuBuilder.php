@@ -42,7 +42,7 @@ class MenuBuilder
         $menu = $this->factory->createItem('root');
 
         $event = new ConfigureMenuEvent($this->factory, $menu, $menuName);
-        $this->dispatcher->dispatch(Events::CONFIGURE, $event);
+        $this->dispatcher->dispatch(Events::MENU_CONFIGURE, $event);
 
         return $event->getMenu();
     }
