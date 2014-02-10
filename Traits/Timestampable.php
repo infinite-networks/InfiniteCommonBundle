@@ -14,7 +14,8 @@ namespace Infinite\CommonBundle\Traits;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Adds created at and updated at timestamps to entities.
+ * Adds created at and updated at timestamps to entities. Requires that entities are
+ * marked with the HasLifecycleCallbacks annotation.
  *
  * @ORM\HasLifecycleCallbacks
  */
