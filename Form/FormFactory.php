@@ -47,4 +47,21 @@ class FormFactory
 
         return $form;
     }
+
+    /**
+     * Creates a new named form.
+     *
+     * @param string $name
+     * @param string $type
+     * @param mixed $data
+     * @param array $options
+     * @return \Symfony\Component\Form\FormInterface
+     */
+    public function createNamed($name, $type, $data = null, array $options = array())
+    {
+        $form = $this->factory->createNamed($name, $type, $data, $options);
+        $form->handleRequest($this->requestStack->getCurrentRequest());
+
+        return $form;
+    }
 }
