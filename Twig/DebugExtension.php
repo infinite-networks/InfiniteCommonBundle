@@ -53,7 +53,7 @@ class DebugExtension extends \Twig_Extension_Debug
     public function doctrineDump(\Twig_Environment $env, $context)
     {
         if (!$env->isDebug()) {
-            return;
+            return '';
         }
 
         ob_start();
@@ -62,7 +62,7 @@ class DebugExtension extends \Twig_Extension_Debug
         if (2 === $count) {
             $vars = array();
             foreach ($context as $key => $value) {
-                if (!$value instanceof Twig_Template) {
+                if (!$value instanceof \Twig_Template) {
                     $vars[$key] = $value;
                 }
             }
