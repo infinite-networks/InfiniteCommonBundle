@@ -11,6 +11,7 @@
 
 namespace Infinite\CommonBundle\Validator\Constraint;
 
+use Entity\Abn;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 
@@ -32,6 +33,10 @@ class AbnValidator extends ConstraintValidator
         // Accept blank values (can add a Required constraint if needed)
         if ($value == '') {
             return;
+        }
+
+        if (!is_string($value)) {
+            $value = (string) $value;
         }
 
         // Preferred format is 'XX XXX XXX XXX'
