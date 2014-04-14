@@ -30,7 +30,10 @@ class AbnValidator extends ConstraintValidator
     public function validate($value, Constraint $constraint)
     {
         // Accept blank values (can add a Required constraint if needed)
-        if ($value == '') {
+        // If the value we're validating is an Object it should be assumed
+        // that an empty string value should be considered invalid, instead of
+        // valid.
+        if ($value == '' and !is_object($value)) {
             return;
         }
 
