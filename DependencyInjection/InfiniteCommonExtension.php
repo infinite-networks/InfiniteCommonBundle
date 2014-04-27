@@ -25,6 +25,7 @@ class InfiniteCommonExtension extends Extension
         $config = $this->processConfiguration($configuration, $configs);
 
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        $loader->load('console_logging.xml');
 
         // Form factory wrapper
         if ($config['form']) {
