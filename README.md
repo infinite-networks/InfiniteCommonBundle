@@ -1,6 +1,8 @@
 Infinite Common Bundle
 ----------------------
 
+*Please note that no support is provided for using this bundle.*
+
 Provides common functionality used in most Infinite Networks Symfony2 applications.
 
 * To use the twig variable `site`, AppKernel must be modified to add an additional

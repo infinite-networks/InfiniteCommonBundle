@@ -1,7 +1,7 @@
 {
     "name": "infinite-networks/common-bundle",
     "description": "Infinite Networks common helpers",
-    "license": "proprietary",
+    "license": "MIT",
     "authors": [
         {
             "name": "Tim Nagel",
@@ -10,5 +10,14 @@
     ],
     "require": {
 
-    }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    },
+    "autoload": {
+        "psr-0": { "Infinite\\CommonBundle": "" }
+    },
+    "target-dir": "Infinite/CommonBundle"
 }
