@@ -17,7 +17,6 @@
         }
     },
     "autoload": {
-        "psr-0": { "Infinite\\CommonBundle": "" }
-    },
-    "target-dir": "Infinite/CommonBundle"
+        "psr-4": { "Infinite\\CommonBundle\\": "" }
+    }
 }
