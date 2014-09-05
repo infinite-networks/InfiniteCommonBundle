@@ -15,15 +15,21 @@ class SiteExtension extends \Twig_Extension
 {
     private $siteGlobal;
 
-    public function __construct(SiteGlobal $siteGlobal)
+    /**
+     * @var string
+     */
+    private $siteVariable;
+
+    public function __construct(SiteGlobal $siteGlobal, $siteVariable = 'site')
     {
         $this->siteGlobal = $siteGlobal;
+        $this->siteVariable = $siteVariable;
     }
 
     public function getGlobals()
     {
         return array(
-            'site' => $this->siteGlobal,
+            $this->siteVariable => $this->siteGlobal,
         );
     }
 
