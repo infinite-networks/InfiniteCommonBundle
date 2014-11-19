@@ -25,6 +25,10 @@ abstract class BaseVoter implements VoterInterface
 
     public function supportsAttribute($attribute)
     {
+        if (is_array($this->attribute)) {
+            return in_array($attribute, $this->attribute);
+        }
+
         return $this->attribute === $attribute;
     }
 
