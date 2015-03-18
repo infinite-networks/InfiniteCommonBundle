@@ -1,7 +1,7 @@
 <?php
 
 /**
- * This file is part of the Infinite Invocation project.
+ * This file is part of the Infinite CommonBundle project.
  *
  * (c) Infinite Networks Pty Ltd <http://www.infinite.net.au>
  *
@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Infinite\ApiSupportBundle\EventListener;
+namespace Infinite\CommonBundle\EventListener;
 
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;

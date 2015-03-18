@@ -8,13 +8,13 @@
         </service>
 
         <service id="infinite_common.logger.handler.sentry" class="Monolog\Handler\RavenHandler">
-            <argument type="service" id="raven" />
+            <argument type="service" id="infinite_common.raven" />
             <argument>300</argument>
             <argument>true</argument>
         </service>
 
         <service id="infinite_common.raven.information" class="Infinite\CommonBundle\EventListener\RavenInformationListener">
-            <argument type="service" id="raven" />
+            <argument type="service" id="infinite_common.raven" />
             <argument type="service" id="security.token_storage" />
             <argument>%site.version%</argument>
 

@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Infinite\ApiSupportBundle\EventListener;
+namespace Infinite\CommonBundle\EventListener;
 
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
