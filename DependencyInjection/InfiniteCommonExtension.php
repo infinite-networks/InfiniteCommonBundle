@@ -39,11 +39,11 @@ class InfiniteCommonExtension extends Extension
 
         // Audit SQL Logger that audits non SELECT sql queries to the specified
         // logger channel in $config['sql_logger']
-        if ($config['sql_logger']) {
+        if ($config['log']['sql_channel']) {
             $loader->load('sql_logger.xml');
 
             $container->getDefinition('infinite_common.audit_sql_logger')->addTag('monolog.logger', array(
-                'channel' => $config['sql_logger']
+                'channel' => $config['log']['sql_channel']
             ));
         }
 
