@@ -11,8 +11,16 @@
 
 namespace Infinite\CommonBundle;
 
+use Infinite\CommonBundle\DependencyInjection\Compiler\AuditSqlLoggerPass;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class InfiniteCommonBundle extends Bundle
 {
+    public function build(ContainerBuilder $container)
+    {
+        parent::build($container);
+
+        $container->addCompilerPass(new AuditSqlLoggerPass());
+    }
 }

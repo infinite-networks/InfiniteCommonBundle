@@ -36,6 +36,7 @@ class Configuration implements ConfigurationInterface
                     ->example(array('navigation'))
                     ->prototype('scalar')->end()
                 ->end()
+                ->scalarNode('sql_logger')->defaultNull()->end()
                 ->booleanNode('twig')->defaultTrue()->end()
             ->end();
 

@@ -37,6 +37,16 @@ class InfiniteCommonExtension extends Extension
             $loader->load('menu.xml');
         }
 
+        // Audit SQL Logger that audits non SELECT sql queries to the specified
+        // logger channel in $config['sql_logger']
+        if ($config['sql_logger']) {
+            $loader->load('sql_logger.xml');
+
+            $container->getDefinition('infinite_common.audit_sql_logger')->addTag('monolog.logger', array(
+                'channel' => $config['sql_logger']
+            ));
+        }
+
         foreach ($config['menus'] as $menu) {
             $definition = new DefinitionDecorator('infinite_common.menu_prototype');
             $definition->setFactoryService('infinite_common.menu.builder');
