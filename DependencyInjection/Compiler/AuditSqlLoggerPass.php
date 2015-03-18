@@ -27,7 +27,7 @@ class AuditSqlLoggerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
     {
-        if (!$container->hasDefinition('infinite_common.audit_sql_logger')) {
+        if (!$container->hasDefinition('infinite_common.logger.audit_sql')) {
             return;
         }
 
@@ -36,7 +36,7 @@ class AuditSqlLoggerPass implements CompilerPassInterface
 
         $original = $container->getDefinition('doctrine.dbal.logger');
         $chainLogger->addMethodCall('addLogger', array($original));
-        $chainLogger->addMethodCall('addLogger', array(new Reference('infinite_common.audit_sql_logger')));
+        $chainLogger->addMethodCall('addLogger', array(new Reference('infinite_common.logger.audit_sql')));
 
         $loggerId = 'invocation.dbal.logger.chain';
         $container->setDefinition($loggerId, $chainLogger);

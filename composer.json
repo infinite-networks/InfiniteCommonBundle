@@ -10,6 +10,7 @@
     ],
     "require": {
         "psr/log": "~1.0",
+        "raven/raven": "~0.10",
         "symfony/framework-bundle": "~2.3",
         "symfony/doctrine-bridge": "~2.3"
     },

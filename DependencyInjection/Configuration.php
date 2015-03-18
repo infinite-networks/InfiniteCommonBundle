@@ -38,6 +38,8 @@ class Configuration implements ConfigurationInterface
                 ->end()
                 ->arrayNode('log')->addDefaultsIfNotSet()
                     ->children()
+                        ->scalarNode('raven_dsn')->defaultNull()->end()
+                        ->scalarNode('request_channel')->defaultNull()->end()
                         ->scalarNode('sql_channel')->defaultNull()->end()
                     ->end()
                 ->end()

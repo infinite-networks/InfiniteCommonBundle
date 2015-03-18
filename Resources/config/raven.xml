@@ -1,0 +1,24 @@
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="infinite_common.raven" class="Raven_Client">
+            <argument>%infinite_common.raven_dsn%</argument>
+        </service>
+
+        <service id="infinite_common.logger.handler.sentry" class="Monolog\Handler\RavenHandler">
+            <argument type="service" id="raven" />
+            <argument>300</argument>
+            <argument>true</argument>
+        </service>
+
+        <service id="infinite_common.raven.information" class="Infinite\CommonBundle\EventListener\RavenInformationListener">
+            <argument type="service" id="raven" />
+            <argument type="service" id="security.token_storage" />
+            <argument>%site.version%</argument>
+
+            <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="-255" />
+        </service>
+    </services>
+</container>
