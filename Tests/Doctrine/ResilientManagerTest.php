@@ -101,7 +101,7 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
         $open->expects($this->once())
             ->method('commit');
 
-        $this->manager->wrapCallable([$mock, 'callback'], 'named');
+        $this->manager->wrapCallable([$mock, 'callback'], null, 'named');
     }
 
     public function testWrapCallableHandlesException()
@@ -131,7 +131,30 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
             ->method('captureException')
             ->with($e);
 
-        $this->manager->wrapCallable([$mock, 'callback'], 'named');
+        $this->manager->wrapCallable([$mock, 'callback'], null, 'named');
+    }
+
+    public function testWrapCallableCallsOnFailure()
+    {
+        $open = $this->getEntityManager(true);
+
+        $this->registry->expects($this->exactly(1))
+            ->method('getManager')
+            ->with('named')
+            ->willReturn($open);
+        $open->expects($this->once())
+            ->method('commit')
+            ->willThrowException($e = new ORMException());
+
+        $mock = $this->getMock('stdClass', ['callback', 'onFailure']);
+        $mock->expects($this->once())
+            ->method('callback')
+            ->with($open);
+        $mock->expects($this->once())
+            ->method('onFailure')
+            ->with($e);
+
+        $this->manager->wrapCallable([$mock, 'callback'], [$mock, 'onFailure'], 'named');
     }
 
     public function testWrapPersist()
@@ -149,6 +172,28 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
             ->with($obj);
 
         $this->manager->wrapPersist($obj);
+    }
+
+    public function testWrapPersistWrapsOnFailure()
+    {
+        $open = $this->getEntityManager(true);
+
+        $this->registry->expects($this->exactly(1))
+            ->method('getManager')
+            ->with('named')
+            ->willReturn($open);
+        $open->expects($this->once())
+            ->method('commit')
+            ->willThrowException($e = new ORMException());
+
+        $obj = new \stdClass;
+
+        $mock = $this->getMock('stdClass', ['onFailure']);
+        $mock->expects($this->once())
+            ->method('onFailure')
+            ->with($e, $obj);
+
+        $this->manager->wrapPersist($obj, [$mock, 'onFailure'], 'named');
     }
 
     /**

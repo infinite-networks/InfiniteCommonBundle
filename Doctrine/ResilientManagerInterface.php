@@ -29,15 +29,17 @@ interface ResilientManagerInterface
      * EntityManager.
      *
      * @param callable $callback
-     * @param string|null $managerName
+     * @param callable $onFailure
+     * @param string $managerName
      */
-    public function wrapCallable(callable $callback, $managerName = null);
+    public function wrapCallable(callable $callback, callable $onFailure = null, $managerName = null);
 
     /**
      * Wraps an object's persistence and flushing in a transaction.
      *
      * @param mixed $object
-     * @param string|null $managerName
+     * @param callable $onFailure
+     * @param string $managerName
      */
-    public function wrapPersist($object, $managerName = null);
+    public function wrapPersist($object, callable $onFailure = null, $managerName = null);
 }

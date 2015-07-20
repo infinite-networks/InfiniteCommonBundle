@@ -59,7 +59,7 @@ class ResilientManager implements ResilientManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function wrapCallable(callable $callback, $managerName = null)
+    public function wrapCallable(callable $callback, callable $onFailure = null, $managerName = null)
     {
         $em = $this->getManager($managerName);
 
@@ -74,16 +74,24 @@ class ResilientManager implements ResilientManagerInterface
             if ($this->raven) {
                 $this->raven->captureException($e);
             }
+
+            if ($onFailure) {
+                $onFailure($e);
+            }
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function wrapPersist($object, $managerName = null)
+    public function wrapPersist($object, callable $onFailure = null, $managerName = null)
     {
+        $wrappedOnFailure = function ($e) use ($object, $onFailure) {
+            $onFailure($e, $object);
+        };
+
         $this->wrapCallable(function (EntityManagerInterface $em) use ($object) {
             $em->persist($object);
-        }, $managerName);
+        }, $wrappedOnFailure, $managerName);
     }
 }
