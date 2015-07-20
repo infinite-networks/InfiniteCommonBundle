@@ -14,6 +14,10 @@
         "symfony/framework-bundle": "~2.3",
         "symfony/doctrine-bridge": "~2.3"
     },
+    "require-dev": {
+        "phpunit/phpunit": "~4.0",
+        "doctrine/orm": "~2.3"
+    },
     "extra": {
         "branch-alias": {
             "dev-master": "1.2.x-dev"
