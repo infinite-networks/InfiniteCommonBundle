@@ -197,6 +197,59 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @expectedException \Doctrine\ORM\ORMException
+     */
+    public function testWrapClosureRethrowsORMException()
+    {
+        $open = $this->getEntityManager(true);
+
+        $this->registry->expects($this->exactly(1))
+            ->method('getManager')
+            ->with('named')
+            ->willReturn($open);
+        $open->expects($this->once())
+            ->method('commit')
+            ->willThrowException($e = new ORMException());
+
+        $mock = $this->getMock('stdClass', ['callback', 'onFailure']);
+        $mock->expects($this->once())
+            ->method('callback')
+            ->with($open);
+        $mock->expects($this->once())
+            ->method('onFailure')
+            ->with($e)
+            ->willReturn(true);
+
+        $this->manager->wrapCallable([$mock, 'callback'], [$mock, 'onFailure'], 'named');
+    }
+
+    /**
+     * @expectedException \Doctrine\ORM\ORMException
+     */
+    public function testWrapPersistRethrowsOnFailure()
+    {
+        $open = $this->getEntityManager(true);
+
+        $this->registry->expects($this->exactly(1))
+            ->method('getManager')
+            ->with('named')
+            ->willReturn($open);
+        $open->expects($this->once())
+            ->method('commit')
+            ->willThrowException($e = new ORMException());
+
+        $obj = new \stdClass;
+
+        $mock = $this->getMock('stdClass', ['onFailure']);
+        $mock->expects($this->once())
+            ->method('onFailure')
+            ->with($e, $obj)
+            ->willReturn(true);
+
+        $this->manager->wrapPersist($obj, [$mock, 'onFailure'], 'named');
+    }
+
+    /**
      * @param bool $open
      * @return EntityManagerInterface|\PHPUnit_Framework_MockObject_MockObject
      */

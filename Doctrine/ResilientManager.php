@@ -76,7 +76,11 @@ class ResilientManager implements ResilientManagerInterface
             }
 
             if ($onFailure) {
-                $onFailure($e);
+                $rethrow = $onFailure($e);
+
+                if (true === $rethrow) {
+                    throw $e;
+                }
             }
         }
     }
@@ -87,7 +91,7 @@ class ResilientManager implements ResilientManagerInterface
     public function wrapPersist($object, callable $onFailure = null, $managerName = null)
     {
         $wrappedOnFailure = function ($e) use ($object, $onFailure) {
-            $onFailure($e, $object);
+            return $onFailure($e, $object);
         };
 
         $this->wrapCallable(function (EntityManagerInterface $em) use ($object) {

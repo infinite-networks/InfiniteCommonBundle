@@ -28,6 +28,9 @@ interface ResilientManagerInterface
      * Wraps a callable in a transaction. Callback should take a single argument for the
      * EntityManager.
      *
+     * If the onFailure callback returns boolean true, this method will rethrow the ORMException
+     * instead of swallowing it.
+     *
      * @param callable $callback
      * @param callable $onFailure
      * @param string $managerName
@@ -36,6 +39,9 @@ interface ResilientManagerInterface
 
     /**
      * Wraps an object's persistence and flushing in a transaction.
+     *
+     * If the onFailure callback returns boolean true, this method will rethrow the ORMException
+     * instead of swallowing it.
      *
      * @param mixed $object
      * @param callable $onFailure
