@@ -82,6 +82,10 @@ class ResilientManager implements ResilientManagerInterface
                     throw $e;
                 }
             }
+        } catch (\Exception $e) {
+            $em->rollback();
+
+            throw $e;
         }
     }
 

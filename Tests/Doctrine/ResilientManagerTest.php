@@ -197,6 +197,31 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @expectedException \LogicException
+     */
+    public function testWrapClosureRollsBackAndThrowsOnOtherExceptions()
+    {
+        $e = new \LogicException;
+
+        $mock = $this->getMock('stdClass', ['onFailure']);
+        $mock->expects($this->never())
+            ->method('onFailure');
+
+        $open = $this->getEntityManager(true);
+        $open->expects($this->once())
+            ->method('rollback');
+
+        $this->registry->expects($this->exactly(1))
+            ->method('getManager')
+            ->with(null)
+            ->willReturn($open);
+
+        $this->manager->wrapCallable(function () use ($e) {
+            throw $e;
+        }, [$mock, 'onFailure']);
+    }
+
+    /**
      * @expectedException \Doctrine\ORM\ORMException
      */
     public function testWrapClosureRethrowsORMException()
