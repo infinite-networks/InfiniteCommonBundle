@@ -58,7 +58,7 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
     {
         $this->psrLogger->expects($this->once())
             ->method('log')
-            ->with(300, 'Testing Callable', ['result' => null]);
+            ->with(300, 'Testing Callable', []);
 
         $this->logger->logCallable('Testing Callable', function () { });
     }
@@ -85,7 +85,7 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
     {
         $this->psrLogger->expects($this->once())
             ->method('log')
-            ->with(300, 'Testing Callable', ['test' => 'value', 'result' => null]);
+            ->with(300, 'Testing Callable', ['test' => 'value']);
 
         $this->logger->logCallable('Testing Callable', function () { }, ['test' => 'value']);
     }
@@ -104,7 +104,7 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
     {
         $this->psrLogger->expects($this->once())
             ->method('log')
-            ->with(300, 'Testing Callable', ['cool' => 'yep', 'result' => null]);
+            ->with(300, 'Testing Callable', ['cool' => 'yep']);
 
         $this->logger->logCallable('Testing Callable', function (&$data) { $data['cool'] = 'yep'; });
     }

@@ -73,7 +73,7 @@ class ActivityLogger implements ActivityLoggerInterface
 
         if (is_array($result)) {
             $context = array_merge($context, $result);
-        } else {
+        } elseif (null !== $result) {
             $context['result'] = $result;
         }
 
