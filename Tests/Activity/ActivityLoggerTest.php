@@ -28,14 +28,22 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
     private $psrLogger;
 
     /**
+     * @var \Raven_Client|\PHPUnit_Framework_MockObject_MockObject
+     */
+    private $raven;
+
+    /**
      * Sets up the fixture, for example, open a network connection.
      * This method is called before a test is executed.
      */
     protected function setUp()
     {
         $this->psrLogger = $this->getMock('Psr\\Log\\LoggerInterface');
+        $this->raven = $this->getMockBuilder('Raven_Client')
+            ->disableOriginalConstructor()
+            ->getMock();
 
-        $this->logger = new ActivityLogger($this->psrLogger);
+        $this->logger = new ActivityLogger($this->psrLogger, $this->raven);
     }
 
     public function testLogCallableReturnsFalse()
@@ -73,6 +81,15 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
         $this->logger->logCallable('Testing Callable', function () { return ['test' => 'value']; });
     }
 
+    public function testLogCallableSucceedsWithProvidedContext()
+    {
+        $this->psrLogger->expects($this->once())
+            ->method('log')
+            ->with(300, 'Testing Callable', ['test' => 'value', 'result' => null]);
+
+        $this->logger->logCallable('Testing Callable', function () { }, ['test' => 'value']);
+    }
+
     public function testLogCallableSucceedsReturningObject()
     {
         $class = new \stdClass;
@@ -98,7 +115,7 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
 
         $this->psrLogger->expects($this->once())
             ->method('log')
-            ->with(350, $this->logicalAnd(
+            ->with(400, $this->logicalAnd(
                 $this->stringContains('Testing Failed Callable'),
                 $this->stringContains('Failure!')
             ), []);
@@ -122,7 +139,7 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
 
         $this->psrLogger->expects($this->once())
             ->method('log')
-            ->with(350, $this->logicalAnd(
+            ->with(400, $this->logicalAnd(
                 $this->stringContains('Testing Failed Callable'),
                 $this->stringContains('Failure!')
             ), ['huh' => 'wat']);
@@ -136,11 +153,86 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
             $this->assertContains('Failure!', $e->getMessage());
             $this->assertContains('Testing Failed Callable', $e->getMessage());
             $this->assertSame($innerException, $e->getPrevious());
-            $this->assertEquals(['huh' => 'wat'], $e->getAdditionalContext());
+            $this->assertEquals(['huh' => 'wat'], $e->getContext());
 
             return;
         }
 
         $this->fail('Correct exception was not thrown');
+    }
+
+    public function testCombineContextOnNestedFailures()
+    {
+        try {
+            $this->logger->logCallable('Outer', function () {
+                throw new FailedActivityException(new \Exception(), 'Inner', ['inner' => 1, 'test' => 'val']);
+            }, ['test' => 'hello']);
+        } catch (FailedActivityException $e) {
+            $this->assertEquals(['test' => 'hello', 'inner' => 1], $e->getContext());
+
+            return;
+        }
+
+        $this->fail('Correct exception was not thrown');
+    }
+
+    public function testSwallowException()
+    {
+        $this->raven->expects($this->once())
+            ->method('captureException')
+            ->with($this->isInstanceOf('Infinite\\CommonBundle\\Activity\\FailedActivityException'), ['extra' => ['test' => 'hello']]);
+
+        $this->logger->logCallable('Outer', function () {
+            throw new \Exception;
+        }, ['test' => 'hello'], function ($e, $wrapped) {
+            $this->assertInstanceOf('Exception', $e);
+            $this->assertInstanceOf('Infinite\\CommonBundle\\Activity\\FailedActivityException', $wrapped);
+            return true;
+        });
+    }
+
+    public function testNotHandledTwice()
+    {
+        $this->psrLogger->expects($this->exactly(2))
+            ->method('log')
+            ->withConsecutive(
+                [400, $this->isType('string'), $this->isType('array')],
+                [300, $this->isType('string'), $this->isType('array')]
+            );
+        $this->raven->expects($this->once())
+            ->method('captureException')
+            ->with($this->isInstanceOf('Infinite\\CommonBundle\\Activity\\FailedActivityException'), ['extra' => []]);
+
+        $this->logger->logCallable('Outer', function () {
+            $this->logger->logCallable('Inner', function () {
+                throw new \Exception;
+            }, [], function () { return true; });
+        }, [], function () {
+            $this->fail('Inner handler leaked');
+        });
+    }
+
+    public function testDoesNotHandlePHPUnitExceptions()
+    {
+        try {
+            $this->logger->logCallable('Inner', function () {
+                throw new \PHPUnit_Framework_Exception;
+            }, [], function () { return true; });
+        } catch (\PHPUnit_Exception $e) {
+            return;
+        }
+
+        $this->fail('Swallowed PHPUnit Exception');
+    }
+
+    public function testLogToOutput()
+    {
+        $output = $this->getMock('Symfony\\Component\\Console\\Output\\OutputInterface');
+        $output->expects($this->once())
+            ->method('writeln')
+            ->with($this->stringContains('Test'));
+
+        $this->logger->setOutput($output);
+        $this->logger->logCallable('Test', function () { });
     }
 }

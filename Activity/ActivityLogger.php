@@ -12,6 +12,7 @@
 namespace Infinite\CommonBundle\Activity;
 
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class ActivityLogger implements ActivityLoggerInterface
 {
@@ -23,27 +24,47 @@ class ActivityLogger implements ActivityLoggerInterface
     private $logger;
 
     /**
-     * @param LoggerInterface $logger
+     * If an output is specified, the generated log line is also output to the output.
+     *
+     * @var OutputInterface
      */
-    public function __construct(LoggerInterface $logger)
+    private $output;
+
+    /**
+     * @var \Raven_Client
+     */
+    private $raven;
+
+    /**
+     * @param LoggerInterface $logger
+     * @param \Raven_Client $raven
+     */
+    public function __construct(LoggerInterface $logger, \Raven_Client $raven)
     {
         $this->logger = $logger;
+        $this->raven = $raven;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function logCallable($description, callable $callable)
+    public function logCallable($description, callable $callable, array $context = [], callable $swallowException = null)
     {
-        $additionalContext = [];
-
         try {
-            $result = $callable($additionalContext);
+            $result = $callable($context);
+        } catch (\PHPUnit_Exception $e) {
+            throw $e;
         } catch (\Exception $e) {
-            $wrapped = new FailedActivityException($e, $description, $additionalContext);
-            $this->logger->log(350, $wrapped->getMessage(), $additionalContext);
+            $e = $this->wrapException($e, $description, $context);
+            $this->log(400, $e->getMessage(), $e->getContext());
 
-            throw $wrapped;
+            if ($swallowException && $swallowException($e->getPrevious(), $e)) {
+                $this->raven->captureException($e, ['extra' => $e->getContext()]);
+
+                return;
+            }
+
+            throw $e;
         }
 
         if (false === $result) {
@@ -51,11 +72,59 @@ class ActivityLogger implements ActivityLoggerInterface
         }
 
         if (is_array($result)) {
-            $additionalContext = array_merge($additionalContext, $result);
+            $context = array_merge($context, $result);
         } else {
-            $additionalContext['result'] = $result;
+            $context['result'] = $result;
         }
 
-        $this->logger->log(300, $description, $additionalContext);
+        $this->log(300, $description, $context);
+    }
+
+    /**
+     * Sets an OutputInterface instance which will receive log entries in addition
+     * to the configured LoggerInterface.
+     *
+     * @param OutputInterface $output
+     */
+    public function setOutput(OutputInterface $output)
+    {
+        $this->output = $output;
+    }
+
+    /**
+     * Logs to the Psr Logger and if an OutputInterface has been set, writes the same message
+     * to the console.
+     *
+     * @param int $level
+     * @param string $message
+     * @param array $context
+     */
+    private function log($level, $message, array $context)
+    {
+        $this->logger->log($level, $message, $context);
+
+        if ($this->output) {
+            $wrap = $level > 300 ? 'error' : 'info';
+
+            $this->output->writeln(sprintf('<%1$s>%2$s</%1$s>', $wrap, $message));
+        }
+    }
+
+    /**
+     * Wraps an exception around a FailedActivityException. If the exception to be wrapped is a
+     * FailedActivityException, combine the additionalContext.
+     *
+     * @param \Exception $e
+     * @param string $description
+     * @param array $context
+     * @return FailedActivityException
+     */
+    private function wrapException(\Exception $e, $description, array $context)
+    {
+        if ($e instanceof FailedActivityException) {
+            $context = array_merge($e->getContext(), $context);
+        }
+
+        return new FailedActivityException($e, $description, $context);
     }
 }

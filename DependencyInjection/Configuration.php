@@ -31,6 +31,11 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
+                ->arrayNode('activity')
+                    ->children()
+                        ->scalarNode('logger')->end()
+                    ->end()
+                ->end()
                 ->booleanNode('form')->defaultTrue()->end()
                 ->arrayNode('menus')
                     ->example(array('navigation'))

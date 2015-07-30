@@ -28,6 +28,12 @@ class InfiniteCommonExtension extends Extension
         $loader->load('console_logging.xml');
         $loader->load('doctrine.xml');
 
+        if (isset($config['activity'])) {
+            $loader->load('activity.xml');
+
+            $container->setAlias('infinite_common.activity_logger.logger', $config['activity']['logger']);
+        }
+
         // Form factory wrapper
         if ($config['form']) {
             $loader->load('form.xml');

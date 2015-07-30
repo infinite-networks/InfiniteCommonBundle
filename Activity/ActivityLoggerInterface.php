@@ -30,9 +30,17 @@ interface ActivityLoggerInterface
      * additional context information can be set during the callable to be provided for exception
      * reporting.
      *
+     * If supplied, the swallowException callable will be called with the exception that was caught
+     * and a wrapped FailedActivityException. Returning true from the callable will cause the exception
+     * to be swallowed and logged to Raven with the additional context.
+     *
+     * If the callable raises a FailedActivityException itself, it will wrap the
+     * FailedActivityException and combine context from deeper in the exception chain.
+     *
      * @param string $description
      * @param callable $callable
-     * @throws FailedActivityException
+     * @param array $context
+     * @param callable $swallowException
      */
-    public function logCallable($description, callable $callable);
+    public function logCallable($description, callable $callable, array $context = [], callable $swallowException = null);
 }
