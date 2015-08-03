@@ -16,31 +16,39 @@ interface ActivityLoggerInterface
     /**
      * Logs the activity to appropriate places depending on if the activity is successful or not.
      *
-     * Depending on the behaviour of the callable, the activity will be logged into different
-     * locations:
+     * The return value of this method is the return value of the supplied $callable unless an
+     * exception is thrown, in that case null is returned.
      *
-     *  * If the $activity callable returns false, no activity is logged
-     *  * If the $activity callable returns true or nothing, the description is logged.
-     *  * If the $activity callable returns an array or object, the description is
-     *    logged with context being set to the array.
-     *  * If an exception is thrown, we wrap the exception in another one that contains
-     *    context from the callback.
+     * When no exception is thrown, the activity is considered successful and will be logged to the
+     * logger configured in the ActivityLogger instance. Context provided to the logCallable method
+     * and any additional context set by the callable will be added to the log call.
      *
-     * The callable is provided with a parameter for additionalContext, which if used by reference,
-     * additional context information can be set during the callable to be provided for exception
-     * reporting.
+     * The result of the callable will also be stored with the result key on the context if the
+     * returned value is not null.
      *
-     * If supplied, the swallowException callable will be called with the exception that was caught
-     * and a wrapped FailedActivityException. Returning true from the callable will cause the exception
-     * to be swallowed and logged to Raven with the additional context.
+     * In the case of an exception being thrown inside the callable, it will be caught and wrapped
+     * with a FailedActivityException and logged to the configured logger with a higher level and
+     * any context available.
      *
-     * If the callable raises a FailedActivityException itself, it will wrap the
-     * FailedActivityException and combine context from deeper in the exception chain.
+     * An optional parameter to logCallable, $swallowException, is a callable that can be used to
+     * check if the exception that was caught should be silently swallowed and logged to Raven or
+     * if it should be rethrown, returning true will swallow the exception.
+     *
+     * Finally, $logSuccess allows the caller of logCallable to indicate if a successful activity
+     * should be logged. This parameter has no effect on a caught exception.
      *
      * @param string $description
      * @param callable $callable
      * @param array $context
      * @param callable $swallowException
+     * @param bool $logSuccess
+     * @return mixed
      */
-    public function logCallable($description, callable $callable, array $context = [], callable $swallowException = null);
+    public function logCallable(
+        $description,
+        callable $callable,
+        array $context = [],
+        callable $swallowException = null,
+        $logSuccess = true
+    );
 }

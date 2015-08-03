@@ -32,6 +32,8 @@ class InfiniteCommonExtension extends Extension
             $loader->load('activity.xml');
 
             $container->setAlias('infinite_common.activity_logger.logger', $config['activity']['logger']);
+            $container->setParameter('infinite_common.activity_logger.success_level', $config['activity']['success_level']);
+            $container->setParameter('infinite_common.activity_logger.exception_level', $config['activity']['exception_level']);
         }
 
         // Form factory wrapper

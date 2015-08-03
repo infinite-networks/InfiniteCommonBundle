@@ -17,6 +17,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 class ActivityLogger implements ActivityLoggerInterface
 {
     /**
+     * The log level for an exceptional activity.
+     *
+     * @var int
+     */
+    private $exceptionLevel;
+
+    /**
      * The logger to log any activity messages to.
      *
      * @var LoggerInterface
@@ -31,53 +38,54 @@ class ActivityLogger implements ActivityLoggerInterface
     private $output;
 
     /**
+     * The exception reporting service.
+     *
      * @var \Raven_Client
      */
     private $raven;
 
     /**
+     * The log level for a successful activity.
+     *
+     * @var int
+     */
+    private $successLevel;
+
+    /**
      * @param LoggerInterface $logger
      * @param \Raven_Client $raven
+     * @param int $successLevel
+     * @param int $exceptionLevel
      */
-    public function __construct(LoggerInterface $logger, \Raven_Client $raven)
+    public function __construct(LoggerInterface $logger, \Raven_Client $raven, $successLevel = 300, $exceptionLevel = 400)
     {
+        $this->exceptionLevel = $exceptionLevel;
         $this->logger = $logger;
         $this->raven = $raven;
+        $this->successLevel = $successLevel;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function logCallable($description, callable $callable, array $context = [], callable $swallowException = null)
-    {
+    public function logCallable(
+        $description,
+        callable $callable,
+        array $context = [],
+        callable $swallowException = null,
+        $logSuccess = true
+    ) {
         try {
             $result = $callable($context);
         } catch (\PHPUnit_Exception $e) {
             throw $e;
         } catch (\Exception $e) {
-            $e = $this->wrapException($e, $description, $context);
-            $this->log(400, $e->getMessage(), $e->getContext());
-
-            if ($swallowException && $swallowException($e->getPrevious(), $e)) {
-                $this->raven->captureException($e, ['extra' => $e->getContext()]);
-
-                return;
-            }
-
-            throw $e;
+            return $this->handleException($e, $description, $context, $swallowException);
         }
 
-        if (false === $result) {
-            return;
-        }
+        $this->handleSuccess($logSuccess, $description, $context, $result);
 
-        if (is_array($result)) {
-            $context = array_merge($context, $result);
-        } elseif (null !== $result) {
-            $context['result'] = $result;
-        }
-
-        $this->log(300, $description, $context);
+        return $result;
     }
 
     /**
@@ -89,6 +97,51 @@ class ActivityLogger implements ActivityLoggerInterface
     public function setOutput(OutputInterface $output)
     {
         $this->output = $output;
+    }
+
+    /**
+     * Handles an exception.
+     *
+     * @param \Exception $e
+     * @param string $description
+     * @param array $context
+     * @param callable $swallowException
+     * @return null
+     * @throws \Exception
+     */
+    private function handleException(\Exception $e, $description, array $context, callable $swallowException = null)
+    {
+        $e = $this->wrapException($e, $description, $context);
+        $this->log($this->exceptionLevel, $e->getMessage(), $e->getContext());
+
+        if ($swallowException && $swallowException($e->getPrevious(), $e)) {
+            $this->raven->captureException($e, ['extra' => $e->getContext()]);
+
+            return null;
+        }
+
+        throw $e;
+    }
+
+    /**
+     * Handles a success - only logging if $logSuccess is true.
+     *
+     * @param bool $logSuccess
+     * @param $description
+     * @param array $context
+     * @param mixed $result
+     */
+    private function handleSuccess($logSuccess, $description, array $context, $result)
+    {
+        if (!$logSuccess) {
+            return;
+        }
+
+        if (null !== $result) {
+            $context['result'] = $result;
+        }
+
+        $this->log($this->successLevel, $description, $context);
     }
 
     /**

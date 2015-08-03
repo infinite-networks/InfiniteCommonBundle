@@ -46,14 +46,6 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
         $this->logger = new ActivityLogger($this->psrLogger, $this->raven);
     }
 
-    public function testLogCallableReturnsFalse()
-    {
-        $this->psrLogger->expects($this->never())
-            ->method('log');
-
-        $this->logger->logCallable('Testing Callable', function () { return false; });
-    }
-
     public function testLogCallableSucceedsOnNull()
     {
         $this->psrLogger->expects($this->once())
@@ -76,7 +68,7 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
     {
         $this->psrLogger->expects($this->once())
             ->method('log')
-            ->with(300, 'Testing Callable', ['test' => 'value']);
+            ->with(300, 'Testing Callable', ['result' => ['test' => 'value']]);
 
         $this->logger->logCallable('Testing Callable', function () { return ['test' => 'value']; });
     }
@@ -187,6 +179,7 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
         }, ['test' => 'hello'], function ($e, $wrapped) {
             $this->assertInstanceOf('Exception', $e);
             $this->assertInstanceOf('Infinite\\CommonBundle\\Activity\\FailedActivityException', $wrapped);
+            $this->assertContains('Outer', $wrapped->getActivityDescription());
             return true;
         });
     }
@@ -234,5 +227,13 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
 
         $this->logger->setOutput($output);
         $this->logger->logCallable('Test', function () { });
+    }
+
+    public function testSuppressSuccessfulLog()
+    {
+        $this->psrLogger->expects($this->never())
+            ->method('log');
+
+        $this->logger->logCallable('Test', function () { }, [], null, false);
     }
 }

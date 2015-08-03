@@ -6,6 +6,8 @@
         <service id="infinite_common.activity_logger" class="Infinite\CommonBundle\Activity\ActivityLogger">
             <argument type="service" id="infinite_common.activity_logger.logger" />
             <argument type="service" id="infinite_common.raven" on-invalid="null" />
+            <argument>%infinite_common.activity_logger.success_level%</argument>
+            <argument>%infinite_common.activity_logger.exception_level%</argument>
         </service>
     </services>
 </container>
