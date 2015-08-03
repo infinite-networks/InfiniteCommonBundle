@@ -71,16 +71,12 @@ class ResilientManager implements ResilientManagerInterface
         } catch (ORMException $e) {
             $em->rollback();
 
-            if ($this->raven) {
-                $this->raven->captureException($e);
+            if ($onFailure && $onFailure($e)) {
+                throw $e;
             }
 
-            if ($onFailure) {
-                $rethrow = $onFailure($e);
-
-                if (true === $rethrow) {
-                    throw $e;
-                }
+            if ($this->raven) {
+                $this->raven->captureException($e);
             }
         } catch (\Exception $e) {
             $em->rollback();
