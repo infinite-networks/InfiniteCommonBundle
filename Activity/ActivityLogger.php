@@ -17,6 +17,14 @@ use Symfony\Component\Console\Output\OutputInterface;
 class ActivityLogger implements ActivityLoggerInterface
 {
     /**
+     * Tracks the ActivityLogger call depth, stopping log output if we're a few levels
+     * deep.
+     *
+     * @var int
+     */
+    private $callDepth = 0;
+
+    /**
      * The log level for an exceptional activity.
      *
      * @var int
@@ -73,17 +81,24 @@ class ActivityLogger implements ActivityLoggerInterface
         callable $callable,
         array $context = [],
         callable $swallowException = null,
-        $logSuccess = true
+        $logSuccess = null
     ) {
+        $this->callDepth++;
+        $result = null;
+
         try {
             $result = $callable($context);
         } catch (\PHPUnit_Exception $e) {
             throw $e;
         } catch (\Exception $e) {
             return $this->handleException($e, $description, $context, $swallowException);
+        } finally {
+            $this->callDepth--;
         }
 
-        $this->handleSuccess($logSuccess, $description, $context, $result);
+        if (true === $logSuccess || (null === $logSuccess && $this->callDepth === 0)) {
+            $this->handleSuccess($logSuccess, $description, $context, $result);
+        }
 
         return $result;
     }
@@ -112,9 +127,13 @@ class ActivityLogger implements ActivityLoggerInterface
     private function handleException(\Exception $e, $description, array $context, callable $swallowException = null)
     {
         $e = $this->wrapException($e, $description, $context);
-        $this->log($this->exceptionLevel, $e->getMessage(), $e->getContext());
+        $swallow = $swallowException && $swallowException($e->getPrevious(), $e);
 
-        if ($swallowException && $swallowException($e->getPrevious(), $e)) {
+        if ($swallow || $this->callDepth === 1) {
+            $this->log($this->exceptionLevel, $e->getMessage(), $e->getContext());
+        }
+
+        if ($swallow) {
             $this->raven->captureException($e, ['extra' => $e->getContext()]);
 
             return null;
@@ -133,7 +152,7 @@ class ActivityLogger implements ActivityLoggerInterface
      */
     private function handleSuccess($logSuccess, $description, array $context, $result)
     {
-        if (!$logSuccess) {
+        if (false === $logSuccess) {
             return;
         }
 

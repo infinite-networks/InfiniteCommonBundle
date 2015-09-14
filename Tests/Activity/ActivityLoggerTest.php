@@ -189,8 +189,8 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
         $this->psrLogger->expects($this->exactly(2))
             ->method('log')
             ->withConsecutive(
-                [400, $this->isType('string'), $this->isType('array')],
-                [300, $this->isType('string'), $this->isType('array')]
+                [400, $this->stringContains('Inner'), $this->isType('array')],
+                [300, $this->stringContains('Outer'), $this->isType('array')]
             );
         $this->raven->expects($this->once())
             ->method('captureException')
@@ -202,6 +202,33 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
             }, [], function () { return true; });
         }, [], function () {
             $this->fail('Inner handler leaked');
+        });
+    }
+
+    public function testLogsAtRoot()
+    {
+        $this->psrLogger->expects($this->once())
+            ->method('log')
+            ->withConsecutive(
+                [300, $this->stringContains('Outer'), $this->isType('array')]
+            );
+
+        $this->logger->logCallable('Outer', function () {
+            $this->logger->logCallable('Inner', function () { });
+        });
+    }
+
+    public function testOverrideRootLogging()
+    {
+        $this->psrLogger->expects($this->exactly(2))
+            ->method('log')
+            ->withConsecutive(
+                [300, $this->stringContains('Inner'), $this->isType('array')],
+                [300, $this->stringContains('Outer'), $this->isType('array')]
+            );
+
+        $this->logger->logCallable('Outer', function () {
+            $this->logger->logCallable('Inner', function () { }, [], null, true);
         });
     }
 
