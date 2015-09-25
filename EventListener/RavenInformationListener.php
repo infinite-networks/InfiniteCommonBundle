@@ -26,7 +26,7 @@ class RavenInformationListener
      * @param TokenStorageInterface $tokenStorage
      * @param string $version
      */
-    public function __construct(\Raven_Client $raven, TokenStorageInterface $tokenStorage, $version)
+    public function __construct(\Raven_Client $raven, TokenStorageInterface $tokenStorage = null, $version = null)
     {
         $this->raven = $raven;
         $this->tokenStorage = $tokenStorage;
@@ -42,7 +42,9 @@ class RavenInformationListener
             'version' => $this->version
         );
 
-        $token = $this->tokenStorage->getToken();
+        $token = $this->tokenStorage ?
+            $this->tokenStorage->getToken() :
+            null;
         if ($token && $token->getUser() instanceof UserInterface) {
             $user = $token->getUser();
             $this->raven->user_context(array(

@@ -15,8 +15,8 @@
 
         <service id="infinite_common.raven.information" class="Infinite\CommonBundle\EventListener\RavenInformationListener">
             <argument type="service" id="infinite_common.raven" />
-            <argument type="service" id="security.token_storage" />
-            <argument>%site.version%</argument>
+            <argument type="service" id="security.token_storage" on-invalid="null" />
+            <argument on-invalid="null">%site.version%</argument>
 
             <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="-255" />
         </service>
