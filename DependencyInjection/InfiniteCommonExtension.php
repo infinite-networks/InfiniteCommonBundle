@@ -47,7 +47,7 @@ class InfiniteCommonExtension extends Extension
         }
 
         // Loads the Raven client for error reporting to a Sentry server
-        if ($config['log']['raven_dsn']) {
+        if (null !== $config['log']['raven_dsn']) {
             $loader->load('raven.xml');
 
             $container->setParameter('infinite_common.raven_dsn', $config['log']['raven_dsn']);
