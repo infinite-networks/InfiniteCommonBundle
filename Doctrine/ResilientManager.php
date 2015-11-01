@@ -90,12 +90,14 @@ class ResilientManager implements ResilientManagerInterface
      */
     public function wrapPersist($object, callable $onFailure = null, $managerName = null)
     {
-        $wrappedOnFailure = function ($e) use ($object, $onFailure) {
-            return $onFailure($e, $object);
-        };
+        if (null !== $onFailure) {
+            $onFailure = function ($e) use ($object, $onFailure) {
+                return $onFailure($e, $object);
+            };
+        }
 
         $this->wrapCallable(function (EntityManagerInterface $em) use ($object) {
             $em->persist($object);
-        }, $wrappedOnFailure, $managerName);
+        }, $onFailure, $managerName);
     }
 }
