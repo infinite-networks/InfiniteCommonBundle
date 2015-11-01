@@ -90,6 +90,8 @@ class ActivityLogger implements ActivityLoggerInterface
             $result = $callable($context);
         } catch (\PHPUnit_Exception $e) {
             throw $e;
+        } catch (\Mockery\Exception $e) {
+            throw $e;
         } catch (\Exception $e) {
             return $this->handleException($e, $description, $context, $swallowException);
         } finally {
