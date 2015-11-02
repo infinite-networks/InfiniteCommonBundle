@@ -42,8 +42,6 @@ abstract class LockingCommand extends ContainerAwareCommand
         $this->lockHandler = new LockHandler($this->getName(), $lockPath);
 
         if (!$this->lockHandler->lock()) {
-            $output->writeln('no lock');
-
             if (!$blocking) {
                 throw new \RuntimeException('Unable to obtain lock for running command');
             }
