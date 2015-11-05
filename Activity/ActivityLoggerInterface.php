@@ -49,6 +49,6 @@ interface ActivityLoggerInterface
         callable $callable,
         array $context = [],
         callable $swallowException = null,
-        $logSuccess = true
+        $logSuccess = null
     );
 }
