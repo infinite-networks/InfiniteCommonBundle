@@ -27,7 +27,8 @@ abstract class LockingCommand extends ContainerAwareCommand
      */
     protected function configure()
     {
-        $this->addOption('lock-block', null, InputOption::VALUE_NONE, 'If the command is locked, block until a lock can be obtained.');
+        $this->addOption('lock-block', null, InputOption::VALUE_NONE, 'If the command is locked, block until a lock can be obtained.')
+            ->addOption('skip-lock', null, InputOption::VALUE_NONE, 'Dont bother with a lock. Dragons.');
     }
 
     /**
@@ -36,6 +37,10 @@ abstract class LockingCommand extends ContainerAwareCommand
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
         parent::initialize($input, $output);
+
+        if ($input->getOption('skip-lock')) {
+            return;
+        }
 
         $blocking = $input->getOption('lock-block');
         $lockPath = $this->getContainer()->getParameter('kernel.cache_dir').'/locks';
