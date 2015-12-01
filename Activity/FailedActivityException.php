@@ -19,13 +19,13 @@ class FailedActivityException extends \Exception
     private $activityDescription;
 
     /**
-     * @var array
+     * @var Context
      */
     private $context;
 
-    public function __construct(\Exception $e, $activityDescription, array $context = [])
+    public function __construct(\Exception $e, $activityDescription, Context $context)
     {
-        $message = sprintf('An error occurred while trying to perform activity (%s): %s', $activityDescription, $e->getMessage());
+        $message = sprintf('Activity Failure (%s): %s', $activityDescription, $e->getMessage());
         parent::__construct($message, $e->getCode(), $e);
 
         $this->activityDescription = $activityDescription;
@@ -41,7 +41,7 @@ class FailedActivityException extends \Exception
     }
 
     /**
-     * @return array
+     * @return Context
      */
     public function getContext()
     {

@@ -39,16 +39,16 @@ interface ActivityLoggerInterface
      *
      * @param string $description
      * @param callable $callable
-     * @param array $context
-     * @param callable $swallowException
-     * @param bool $logSuccess
+     * @param Context|array $context
+     * @param callable|bool $swallowException
+     * @param callable|bool $logSuccess
      * @return mixed
      */
     public function logCallable(
         $description,
         callable $callable,
-        array $context = [],
-        callable $swallowException = null,
+        $context = null,
+        $swallowException = null,
         $logSuccess = null
     );
 }

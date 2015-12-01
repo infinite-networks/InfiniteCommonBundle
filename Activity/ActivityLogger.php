@@ -39,13 +39,6 @@ class ActivityLogger implements ActivityLoggerInterface
     private $logger;
 
     /**
-     * If an output is specified, the generated log line is also output to the output.
-     *
-     * @var OutputInterface
-     */
-    private $output;
-
-    /**
      * The exception reporting service.
      *
      * @var \Raven_Client
@@ -79,15 +72,20 @@ class ActivityLogger implements ActivityLoggerInterface
     public function logCallable(
         $description,
         callable $callable,
-        array $context = [],
-        callable $swallowException = null,
+        $context = null,
+        $swallowException = null,
         $logSuccess = null
     ) {
+        if (!$context instanceof Context) {
+            $context = new Context($context ?: []);
+        }
+
         $this->callDepth++;
         $result = null;
 
         try {
             $result = $callable($context);
+            $context->setResult($result);
         } catch (\PHPUnit_Exception $e) {
             throw $e;
         } catch (\Mockery\Exception $e) {
@@ -98,22 +96,12 @@ class ActivityLogger implements ActivityLoggerInterface
             $this->callDepth--;
         }
 
+        $logSuccess = $this->resolve($logSuccess, $context);
         if (true === $logSuccess || (null === $logSuccess && $this->callDepth === 0)) {
-            $this->handleSuccess($logSuccess, $description, $context, $result);
+            $this->logger->log($this->successLevel, $description, $context->toArray());
         }
 
         return $result;
-    }
-
-    /**
-     * Sets an OutputInterface instance which will receive log entries in addition
-     * to the configured LoggerInterface.
-     *
-     * @param OutputInterface $output
-     */
-    public function setOutput(OutputInterface $output)
-    {
-        $this->output = $output;
     }
 
     /**
@@ -121,67 +109,43 @@ class ActivityLogger implements ActivityLoggerInterface
      *
      * @param \Exception $e
      * @param string $description
-     * @param array $context
-     * @param callable $swallowException
+     * @param Context $context
+     * @param callable|bool $swallowException
      * @return null
      * @throws \Exception
      */
-    private function handleException(\Exception $e, $description, array $context, callable $swallowException = null)
+    private function handleException(\Exception $e, $description, Context $context, $swallowException)
     {
-        $e = $this->wrapException($e, $description, $context);
-        $swallow = $swallowException && $swallowException($e->getPrevious(), $e);
+        $wrapped = $this->wrapException($e, $description, $context);
+        $swallow = $this->resolve($swallowException, $e, $wrapped);
 
         if ($swallow || $this->callDepth === 1) {
-            $this->log($this->exceptionLevel, $e->getMessage(), $e->getContext());
+            $this->logger->log($this->exceptionLevel, $wrapped->getMessage(), $wrapped->getContext()->toArray());
         }
 
         if ($swallow) {
-            $this->raven->captureException($e, ['extra' => $e->getContext()]);
+            $this->raven->captureException($wrapped, ['extra' => $wrapped->getContext()->toArray()]);
 
             return null;
         }
 
-        throw $e;
+        throw $wrapped;
     }
 
     /**
-     * Handles a success - only logging if $logSuccess is true.
+     * Resolves a variable that can be a callable or boolean.
      *
-     * @param bool $logSuccess
-     * @param $description
-     * @param array $context
-     * @param mixed $result
+     * @param callable|bool $variable
+     * @return bool
      */
-    private function handleSuccess($logSuccess, $description, array $context, $result)
+    private function resolve($variable)
     {
-        if (false === $logSuccess) {
-            return;
+        if (is_callable($variable)) {
+            $args = func_get_args();
+            return call_user_func_array($variable, array_splice($args, 1));
         }
 
-        if (null !== $result) {
-            $context['result'] = $result;
-        }
-
-        $this->log($this->successLevel, $description, $context);
-    }
-
-    /**
-     * Logs to the Psr Logger and if an OutputInterface has been set, writes the same message
-     * to the console.
-     *
-     * @param int $level
-     * @param string $message
-     * @param array $context
-     */
-    private function log($level, $message, array $context)
-    {
-        $this->logger->log($level, $message, $context);
-
-        if ($this->output) {
-            $wrap = $level > 300 ? 'error' : 'info';
-
-            $this->output->writeln(sprintf('<%1$s>%2$s</%1$s>', $wrap, $message));
-        }
+        return $variable;
     }
 
     /**
@@ -190,13 +154,13 @@ class ActivityLogger implements ActivityLoggerInterface
      *
      * @param \Exception $e
      * @param string $description
-     * @param array $context
+     * @param Context $context
      * @return FailedActivityException
      */
-    private function wrapException(\Exception $e, $description, array $context)
+    private function wrapException(\Exception $e, $description, Context $context)
     {
         if ($e instanceof FailedActivityException) {
-            $context = array_merge($e->getContext(), $context);
+            $context->merge($e->getContext());
         }
 
         return new FailedActivityException($e, $description, $context);
