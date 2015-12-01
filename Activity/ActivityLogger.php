@@ -72,15 +72,20 @@ class ActivityLogger implements ActivityLoggerInterface
     public function logCallable(
         $description,
         callable $callable,
-        array $context = [],
-        callable $swallowException = null,
+        $context = null,
+        $swallowException = null,
         $logSuccess = null
     ) {
+        if (!$context instanceof Context) {
+            $context = new Context($context ?: []);
+        }
+
         $this->callDepth++;
         $result = null;
 
         try {
             $result = $callable($context);
+            $context->setResult($result);
         } catch (\PHPUnit_Exception $e) {
             throw $e;
         } catch (\Mockery\Exception $e) {
@@ -91,8 +96,9 @@ class ActivityLogger implements ActivityLoggerInterface
             $this->callDepth--;
         }
 
+        $logSuccess = $this->resolve($logSuccess, $context);
         if (true === $logSuccess || (null === $logSuccess && $this->callDepth === 0)) {
-            $this->logger->log($this->successLevel, $description, $context);
+            $this->logger->log($this->successLevel, $description, $context->toArray());
         }
 
         return $result;
@@ -103,27 +109,43 @@ class ActivityLogger implements ActivityLoggerInterface
      *
      * @param \Exception $e
      * @param string $description
-     * @param array $context
-     * @param callable $swallowException
+     * @param Context $context
+     * @param callable|bool $swallowException
      * @return null
      * @throws \Exception
      */
-    private function handleException(\Exception $e, $description, array $context, callable $swallowException = null)
+    private function handleException(\Exception $e, $description, Context $context, $swallowException)
     {
-        $e = $this->wrapException($e, $description, $context);
-        $swallow = $swallowException && $swallowException($e->getPrevious(), $e);
+        $wrapped = $this->wrapException($e, $description, $context);
+        $swallow = $this->resolve($swallowException, $e, $wrapped);
 
         if ($swallow || $this->callDepth === 1) {
-            $this->logger->log($this->exceptionLevel, $wrapped->getMessage(), $wrapped->getContext());
+            $this->logger->log($this->exceptionLevel, $wrapped->getMessage(), $wrapped->getContext()->toArray());
         }
 
         if ($swallow) {
-            $this->raven->captureException($e, ['extra' => $e->getContext()]);
+            $this->raven->captureException($wrapped, ['extra' => $wrapped->getContext()->toArray()]);
 
             return null;
         }
 
-        throw $e;
+        throw $wrapped;
+    }
+
+    /**
+     * Resolves a variable that can be a callable or boolean.
+     *
+     * @param callable|bool $variable
+     * @return bool
+     */
+    private function resolve($variable)
+    {
+        if (is_callable($variable)) {
+            $args = func_get_args();
+            return call_user_func_array($variable, array_splice($args, 1));
+        }
+
+        return $variable;
     }
 
     /**
@@ -132,13 +154,13 @@ class ActivityLogger implements ActivityLoggerInterface
      *
      * @param \Exception $e
      * @param string $description
-     * @param array $context
+     * @param Context $context
      * @return FailedActivityException
      */
-    private function wrapException(\Exception $e, $description, array $context)
+    private function wrapException(\Exception $e, $description, Context $context)
     {
         if ($e instanceof FailedActivityException) {
-            $context = array_merge($e->getContext(), $context);
+            $context->merge($e->getContext());
         }
 
         return new FailedActivityException($e, $description, $context);
