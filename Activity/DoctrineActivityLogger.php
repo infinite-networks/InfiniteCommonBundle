@@ -79,7 +79,6 @@ class DoctrineActivityLogger implements ActivityLoggerInterface
             try {
                 $transactions && $manager->beginTransaction();
                 $return = $callable($context, $manager);
-                $manager->flush();
                 $transactions && $manager->commit();
             } catch (\Exception $e) {
                 $transactions && $manager->rollback();

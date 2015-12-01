@@ -80,7 +80,7 @@ class DoctrineActivityLoggerTest extends \PHPUnit_Framework_TestCase
     {
         $this->open->expects($this->once())
             ->method('beginTransaction');
-        $this->open->expects($this->once())
+        $this->open->expects($this->never())
             ->method('flush');
         $this->open->expects($this->once())
             ->method('commit');
@@ -101,7 +101,7 @@ class DoctrineActivityLoggerTest extends \PHPUnit_Framework_TestCase
     {
         $this->open->expects($this->once())
             ->method('beginTransaction');
-        $this->open->expects($this->once())
+        $this->open->expects($this->never())
             ->method('flush');
         $this->open->expects($this->once())
             ->method('commit')
