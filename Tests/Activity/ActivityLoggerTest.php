@@ -245,17 +245,6 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
         $this->fail('Swallowed PHPUnit Exception');
     }
 
-    public function testLogToOutput()
-    {
-        $output = $this->getMock('Symfony\\Component\\Console\\Output\\OutputInterface');
-        $output->expects($this->once())
-            ->method('writeln')
-            ->with($this->stringContains('Test'));
-
-        $this->logger->setOutput($output);
-        $this->logger->logCallable('Test', function () { });
-    }
-
     public function testSuppressSuccessfulLog()
     {
         $this->psrLogger->expects($this->never())

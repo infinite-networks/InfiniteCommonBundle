@@ -39,13 +39,6 @@ class ActivityLogger implements ActivityLoggerInterface
     private $logger;
 
     /**
-     * If an output is specified, the generated log line is also output to the output.
-     *
-     * @var OutputInterface
-     */
-    private $output;
-
-    /**
      * The exception reporting service.
      *
      * @var \Raven_Client
@@ -99,21 +92,10 @@ class ActivityLogger implements ActivityLoggerInterface
         }
 
         if (true === $logSuccess || (null === $logSuccess && $this->callDepth === 0)) {
-            $this->handleSuccess($logSuccess, $description, $context, $result);
+            $this->logger->log($this->successLevel, $description, $context);
         }
 
         return $result;
-    }
-
-    /**
-     * Sets an OutputInterface instance which will receive log entries in addition
-     * to the configured LoggerInterface.
-     *
-     * @param OutputInterface $output
-     */
-    public function setOutput(OutputInterface $output)
-    {
-        $this->output = $output;
     }
 
     /**
@@ -132,7 +114,7 @@ class ActivityLogger implements ActivityLoggerInterface
         $swallow = $swallowException && $swallowException($e->getPrevious(), $e);
 
         if ($swallow || $this->callDepth === 1) {
-            $this->log($this->exceptionLevel, $e->getMessage(), $e->getContext());
+            $this->logger->log($this->exceptionLevel, $wrapped->getMessage(), $wrapped->getContext());
         }
 
         if ($swallow) {
@@ -142,46 +124,6 @@ class ActivityLogger implements ActivityLoggerInterface
         }
 
         throw $e;
-    }
-
-    /**
-     * Handles a success - only logging if $logSuccess is true.
-     *
-     * @param bool $logSuccess
-     * @param $description
-     * @param array $context
-     * @param mixed $result
-     */
-    private function handleSuccess($logSuccess, $description, array $context, $result)
-    {
-        if (false === $logSuccess) {
-            return;
-        }
-
-        if (null !== $result) {
-            $context['result'] = $result;
-        }
-
-        $this->log($this->successLevel, $description, $context);
-    }
-
-    /**
-     * Logs to the Psr Logger and if an OutputInterface has been set, writes the same message
-     * to the console.
-     *
-     * @param int $level
-     * @param string $message
-     * @param array $context
-     */
-    private function log($level, $message, array $context)
-    {
-        $this->logger->log($level, $message, $context);
-
-        if ($this->output) {
-            $wrap = $level > 300 ? 'error' : 'info';
-
-            $this->output->writeln(sprintf('<%1$s>%2$s</%1$s>', $wrap, $message));
-        }
     }
 
     /**
