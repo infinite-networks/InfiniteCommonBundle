@@ -11,7 +11,7 @@
 
 namespace Infinite\CommonBundle\Twig;
 
-class SiteExtension extends \Twig_Extension
+class SiteExtension extends \Twig_Extension implements \Twig_Extension_GlobalsInterface
 {
     private $siteGlobal;
 
