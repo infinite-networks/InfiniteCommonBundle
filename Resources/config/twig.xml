@@ -7,10 +7,6 @@
     </parameters>
 
     <services>
-        <service id="infinite_common.twig.debug_extension" class="Infinite\CommonBundle\Twig\DebugExtension">
-            <tag name="twig.extension" />
-        </service>
-
         <service id="infinite_common.twig.site_extension" class="Infinite\CommonBundle\Twig\SiteExtension">
             <argument type="service" id="infinite_common.twig.site_global" />
             <argument>%infinite_common.twig.site_variable%</argument>
