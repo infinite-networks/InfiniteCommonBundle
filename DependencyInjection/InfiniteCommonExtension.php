@@ -31,6 +31,14 @@ class InfiniteCommonExtension extends Extension
         if (isset($config['activity'])) {
             $loader->load('activity.xml');
 
+            if ($config['activity']['doctrine']) {
+                $loader->load('activity_doctrine.xml');
+
+                $container->setAlias('infinite_common.activity_logger', 'infinite_common.activity_logger.doctrine');
+            } else {
+                $container->setAlias('infinite_common.activity_logger', 'infinite_common.activity_logger.inner');
+            }
+
             $container->setAlias('infinite_common.activity_logger.logger', $config['activity']['logger']);
             $container->setParameter('infinite_common.activity_logger.success_level', $config['activity']['success_level']);
             $container->setParameter('infinite_common.activity_logger.exception_level', $config['activity']['exception_level']);

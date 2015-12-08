@@ -3,7 +3,7 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
-        <service id="infinite_common.activity_logger" class="Infinite\CommonBundle\Activity\ActivityLogger">
+        <service id="infinite_common.activity_logger.inner" class="Infinite\CommonBundle\Activity\ActivityLogger">
             <argument type="service" id="infinite_common.activity_logger.logger" />
             <argument type="service" id="infinite_common.raven" on-invalid="null" />
             <argument>%infinite_common.activity_logger.success_level%</argument>

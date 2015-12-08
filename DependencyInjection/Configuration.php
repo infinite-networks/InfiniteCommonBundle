@@ -33,6 +33,7 @@ class Configuration implements ConfigurationInterface
             ->children()
                 ->arrayNode('activity')
                     ->children()
+                        ->scalarNode('doctrine')->defaultFalse()->end()
                         ->scalarNode('logger')->end()
                         ->scalarNode('success_level')->defaultValue(300)->end()
                         ->scalarNode('exception_level')->defaultValue(400)->end()
