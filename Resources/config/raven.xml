@@ -5,6 +5,9 @@
     <services>
         <service id="infinite_common.raven" class="Raven_Client">
             <argument>%infinite_common.raven_dsn%</argument>
+            <argument type="collection">
+                <argument key="release">%site.version%</argument>
+            </argument>
         </service>
 
         <service id="infinite_common.logger.handler.sentry" class="Monolog\Handler\RavenHandler">
