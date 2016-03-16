@@ -21,9 +21,13 @@ class View extends BaseView
         $view = parent::create($data, $statusCode, $headers);
 
         if ($groups) {
-            $context = new SerializationContext();
-            $context->setGroups($groups);
-            $view->setSerializationContext($context);
+            if (method_exists($view, 'getContext')) {
+                $view->getContext()->addGroups($groups);
+            } else {
+                $context = new SerializationContext();
+                $context->setGroups($groups);
+                $view->setSerializationContext($context);
+            }
         }
 
         return $view;
