@@ -58,4 +58,9 @@ class DateIntervalType extends StringType
     {
         return self::DATEINTERVAL;
     }
+
+    public function requiresSQLCommentHint(AbstractPlatform $platform)
+    {
+        return true;
+    }
 }
