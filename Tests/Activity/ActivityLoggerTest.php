@@ -291,4 +291,22 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
     {
         $this->logger->logCallable('Test', function () { throw new \Exception; }, null, true);
     }
+
+    public function testLogLevelInteger()
+    {
+        $this->psrLogger->expects($this->once())
+            ->method('log')
+            ->with(500, 'Testing Callable', ['result' => true]);
+
+        $this->logger->logCallable('Testing Callable', function () { return true; }, null, null, 500);
+    }
+
+    public function testLogLevelIntegerCallback()
+    {
+        $this->psrLogger->expects($this->once())
+            ->method('log')
+            ->with(500, 'Testing Callable', ['result' => true]);
+
+        $this->logger->logCallable('Testing Callable', function () { return true; }, null, null, function () { return 500; });
+    }
 }

@@ -35,7 +35,8 @@ interface ActivityLoggerInterface
      * if it should be rethrown, returning true will swallow the exception.
      *
      * Finally, $logSuccess allows the caller of logCallable to indicate if a successful activity
-     * should be logged. This parameter has no effect on a caught exception.
+     * should be logged. This parameter has no effect on a caught exception. If an integer is
+     * specified or returned from the callback, the log level will be set to the provided integer.
      *
      * @param string $description
      * @param callable $callable

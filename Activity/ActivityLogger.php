@@ -97,8 +97,12 @@ class ActivityLogger implements ActivityLoggerInterface
         }
 
         $logSuccess = $this->resolve($logSuccess, $context);
-        if (true === $logSuccess || (null === $logSuccess && $this->callDepth === 0)) {
-            $this->logger->log($this->successLevel, $description, $context->toArray());
+        if ($logSuccess || (null === $logSuccess && $this->callDepth === 0)) {
+            $this->logger->log(
+                is_int($logSuccess) ? $logSuccess : $this->successLevel,
+                $description,
+                $context->toArray()
+            );
         }
 
         return $result;
