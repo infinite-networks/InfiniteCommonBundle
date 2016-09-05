@@ -20,6 +20,9 @@ use Symfony\Component\Filesystem\LockHandler;
 
 abstract class LockingCommand extends ContainerAwareCommand
 {
+    /**
+     * @var LockHandler
+     */
     private $lockHandler;
 
     /**
@@ -42,9 +45,9 @@ abstract class LockingCommand extends ContainerAwareCommand
             return;
         }
 
+        $this->buildLockHandler();
+
         $blocking = $input->getOption('lock-block');
-        $lockPath = $this->getContainer()->getParameter('kernel.cache_dir').'/locks';
-        $this->lockHandler = new LockHandler($this->getName(), $lockPath);
 
         if (!$this->lockHandler->lock()) {
             if (!$blocking) {
@@ -57,5 +60,29 @@ abstract class LockingCommand extends ContainerAwareCommand
         if ($blocking && !$this->lockHandler->lock(true)) {
             throw new \RuntimeException('Unable to obtain lock');
         }
+    }
+
+    /**
+     * Return a string that is appended to the lock name to allow different instances of the
+     * command to have independent locks.
+     *
+     * @return string
+     */
+    protected function getLockArgs()
+    {
+        return '';
+    }
+
+    /**
+     * Creates a lock handler.
+     */
+    private function buildLockHandler()
+    {
+        $lockPath = $this->getContainer()->getParameter('kernel.cache_dir').'/locks';
+
+        $lockName = $this->getName();
+        $lockNameArgs = $this->getLockArgs();
+
+        $this->lockHandler = new LockHandler($lockName.$lockNameArgs, $lockPath);
     }
 }
