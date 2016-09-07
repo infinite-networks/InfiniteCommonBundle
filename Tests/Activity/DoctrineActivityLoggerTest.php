@@ -57,13 +57,11 @@ class DoctrineActivityLoggerTest extends \PHPUnit_Framework_TestCase
      */
     protected function setUp()
     {
-        $this->managerRegistry = $this->getMock('Doctrine\\Common\\Persistence\\ManagerRegistry');
-        $this->psrLogger = $this->getMock('Psr\\Log\\LoggerInterface');
-        $this->raven = $this->getMockBuilder('Raven_Client')
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->managerRegistry = $this->createMock(ManagerRegistry::class);
+        $this->psrLogger = $this->createMock(LoggerInterface::class);
+        $this->raven = $this->createMock(\Raven_Client::class);
 
-        $this->open = $this->getMock('Doctrine\\ORM\\EntityManagerInterface');
+        $this->open = $this->createMock(EntityManagerInterface::class);
         $this->open->expects($this->any())
             ->method('isOpen')
             ->willReturn(true);

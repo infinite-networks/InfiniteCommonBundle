@@ -13,6 +13,7 @@ namespace Infinite\CommonBundle\Tests\Validator\Constraint;
 
 use Infinite\CommonBundle\Validator\Constraint\Abn;
 use Infinite\CommonBundle\Validator\Constraint\AbnValidator;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 class AbnValidatorTest extends \PHPUnit_Framework_TestCase
 {
@@ -27,15 +28,15 @@ class AbnValidatorTest extends \PHPUnit_Framework_TestCase
     private $constraint;
 
     /**
-     * @var \Symfony\Component\Validator\ExecutionContext
+     * @var ExecutionContextInterface
      */
     private $context;
 
     protected function setUp()
     {
         $this->constraint = new Abn;
-        $this->context    = $this->getMock('Symfony\Component\Validator\ExecutionContext', array(), array(), '', false);
-        $this->validator  = new AbnValidator;
+        $this->context = $this->createMock(ExecutionContextInterface::class);
+        $this->validator = new AbnValidator;
         $this->validator->initialize($this->context);
     }
 

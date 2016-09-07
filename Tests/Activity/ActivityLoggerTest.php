@@ -39,10 +39,8 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
      */
     protected function setUp()
     {
-        $this->psrLogger = $this->getMock('Psr\\Log\\LoggerInterface');
-        $this->raven = $this->getMockBuilder('Raven_Client')
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->psrLogger = $this->createMock(LoggerInterface::class);
+        $this->raven = $this->createMock(\Raven_Client::class);
 
         $this->logger = new ActivityLogger($this->psrLogger, $this->raven);
     }

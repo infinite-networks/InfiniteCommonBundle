@@ -35,10 +35,8 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->registry = $this->getMock('Doctrine\\Common\\Persistence\\ManagerRegistry');
-        $this->raven = $this->getMockBuilder('Raven_Client')
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->registry = $this->createMock(ManagerRegistry::class);
+        $this->raven = $this->createMock(\Raven_Client::class);
 
         $this->manager = new ResilientManager($this->registry, $this->raven);
     }
@@ -89,7 +87,7 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
             ->with('named')
             ->willReturn($open);
 
-        $mock = $this->getMock('stdClass', ['callback']);
+        $mock = $this->createMock(TestObj::class);
         $mock->expects($this->once())
             ->method('callback')
             ->with($open);
@@ -113,7 +111,7 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
             ->with('named')
             ->willReturn($open);
 
-        $mock = $this->getMock('stdClass', ['callback']);
+        $mock = $this->createMock(TestObj::class);
         $mock->expects($this->once())
             ->method('callback')
             ->with($open);
@@ -146,7 +144,7 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
             ->method('commit')
             ->willThrowException($e = new ORMException());
 
-        $mock = $this->getMock('stdClass', ['callback', 'onFailure']);
+        $mock = $this->createMock(TestObj::class);
         $mock->expects($this->once())
             ->method('callback')
             ->with($open);
@@ -188,7 +186,7 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
 
         $obj = new \stdClass;
 
-        $mock = $this->getMock('stdClass', ['onFailure']);
+        $mock = $this->createMock(TestObj::class);
         $mock->expects($this->once())
             ->method('onFailure')
             ->with($e, $obj);
@@ -203,7 +201,7 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
     {
         $e = new \LogicException;
 
-        $mock = $this->getMock('stdClass', ['onFailure']);
+        $mock = $this->createMock(TestObj::class);
         $mock->expects($this->never())
             ->method('onFailure');
 
@@ -236,7 +234,7 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
             ->method('commit')
             ->willThrowException($e = new ORMException());
 
-        $mock = $this->getMock('stdClass', ['callback', 'onFailure']);
+        $mock = $this->createMock(TestObj::class);
         $mock->expects($this->once())
             ->method('callback')
             ->with($open);
@@ -265,7 +263,7 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
 
         $obj = new \stdClass;
 
-        $mock = $this->getMock('stdClass', ['onFailure']);
+        $mock = $this->createMock(TestObj::class);
         $mock->expects($this->once())
             ->method('onFailure')
             ->with($e, $obj)
@@ -280,11 +278,24 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
      */
     private function getEntityManager($open)
     {
-        $em = $this->getMock('Doctrine\\ORM\\EntityManagerInterface');
+        $em = $this->createMock('Doctrine\\ORM\\EntityManagerInterface');
         $em->expects($this->any())
             ->method('isOpen')
             ->willReturn($open);
 
         return $em;
+    }
+}
+
+class TestObj
+{
+    public function callback()
+    {
+
+    }
+
+    public function onFailure()
+    {
+
     }
 }
