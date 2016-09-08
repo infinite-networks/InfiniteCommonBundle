@@ -11,14 +11,17 @@
 
 namespace Infinite\CommonBundle\Twig;
 
-use Symfony\Component\DependencyInjection\ContainerAware;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
 /**
  * Custom global variable that provides additional properties to use
  * for site information.
  */
-class SiteGlobal extends ContainerAware
+class SiteGlobal implements ContainerAwareInterface
 {
+    use ContainerAwareTrait;
+
     /**
      * Stores breadcrumbs for display.
      *
