@@ -74,6 +74,7 @@ class AbnValidatorTest extends \PHPUnit_Framework_TestCase
             array('80 097 243 055'),
             array('51824753556'),
             array('35 083 238 395'),
+            array('35 083 238 395 '),
         );
     }
 

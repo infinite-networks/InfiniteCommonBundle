@@ -41,6 +41,8 @@ class AbnValidator extends ConstraintValidator
             $value = (string) $value;
         }
 
+        $value = trim($value);
+
         // Preferred format is 'XX XXX XXX XXX'
         // 'XXXXXXXXXXX' is also allowed even though the error message doesn't say so
         if (!preg_match('/^(\d\d \d\d\d \d\d\d \d\d\d|\d{11})$/', $value)) {
