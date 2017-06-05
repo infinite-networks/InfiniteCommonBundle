@@ -45,7 +45,7 @@ abstract class LockingCommand extends ContainerAwareCommand
             return;
         }
 
-        $this->buildLockHandler();
+        $this->buildLockHandler($input);
 
         $blocking = $input->getOption('lock-block');
 
@@ -66,9 +66,10 @@ abstract class LockingCommand extends ContainerAwareCommand
      * Return a string that is appended to the lock name to allow different instances of the
      * command to have independent locks.
      *
+     * @param InputInterface $input
      * @return string
      */
-    protected function getLockArgs()
+    protected function getLockArgs(InputInterface $input)
     {
         return '';
     }
@@ -76,12 +77,12 @@ abstract class LockingCommand extends ContainerAwareCommand
     /**
      * Creates a lock handler.
      */
-    private function buildLockHandler()
+    private function buildLockHandler(InputInterface $input)
     {
         $lockPath = $this->getContainer()->getParameter('kernel.cache_dir').'/locks';
 
         $lockName = $this->getName();
-        $lockNameArgs = $this->getLockArgs();
+        $lockNameArgs = $this->getLockArgs($input);
 
         $this->lockHandler = new LockHandler($lockName.$lockNameArgs, $lockPath);
     }
