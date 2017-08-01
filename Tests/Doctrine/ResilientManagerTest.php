@@ -102,6 +102,27 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
         $this->manager->wrapCallable([$mock, 'callback'], null, 'named');
     }
 
+    public function testWrapCallableReturns()
+    {
+        $open = $this->getEntityManager(true);
+
+        $this->registry->expects($this->exactly(1))
+            ->method('getManager')
+            ->with('named')
+            ->willReturn($open);
+
+        $open->expects($this->once())
+            ->method('beginTransaction');
+        $open->expects($this->once())
+            ->method('flush');
+        $open->expects($this->once())
+            ->method('commit');
+
+        $result = $this->manager->wrapCallable(function () { return 'hello'; }, null, 'named');
+
+        $this->assertEquals('hello', $result);
+    }
+
     public function testWrapCallableHandlesException()
     {
         $open = $this->getEntityManager(true);

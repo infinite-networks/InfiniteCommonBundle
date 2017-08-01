@@ -65,9 +65,11 @@ class ResilientManager implements ResilientManagerInterface
 
         try {
             $em->beginTransaction();
-            $callback($em);
+            $result = $callback($em);
             $em->flush();
             $em->commit();
+
+            return $result;
         } catch (ORMException $e) {
             $em->rollback();
 
