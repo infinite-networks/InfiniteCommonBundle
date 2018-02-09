@@ -3,7 +3,7 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
-        <service id="infinite_common.activity_logger.doctrine" class="Infinite\CommonBundle\Activity\DoctrineActivityLogger">
+        <service id="infinite_common.activity_logger.doctrine" class="Infinite\CommonBundle\Activity\DoctrineActivityLogger" public="true">
             <argument type="service" id="infinite_common.activity_logger.inner" />
             <argument type="service" id="doctrine" />
         </service>

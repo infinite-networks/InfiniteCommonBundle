@@ -40,7 +40,7 @@ interface ActivityLoggerInterface
      *
      * @param string $description
      * @param callable $callable
-     * @param Context|array $context
+     * @param Context $context
      * @param callable|bool $swallowException
      * @param callable|bool $logSuccess
      * @return mixed
