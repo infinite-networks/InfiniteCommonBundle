@@ -91,6 +91,10 @@ class ActivityLogger implements ActivityLoggerInterface
         } catch (\Mockery\Exception $e) {
             throw $e;
         } catch (\Exception $e) {
+            if ($e instanceof AddContextExceptionInterface) {
+                $e->addToContext($context);
+            }
+
             return $this->handleException($e, $description, $context, $swallowException);
         } finally {
             $this->callDepth--;

@@ -14,6 +14,7 @@ namespace Infinite\CommonBundle\Tests\Activity;
 use Infinite\CommonBundle\Activity\ActivityLogger;
 use Infinite\CommonBundle\Activity\Context;
 use Infinite\CommonBundle\Activity\FailedActivityException;
+use Infinite\CommonBundle\Tests\AddContextException;
 use Psr\Log\LoggerInterface;
 
 class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
@@ -306,5 +307,18 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
             ->with(500, 'Testing Callable', ['result' => true]);
 
         $this->logger->logCallable('Testing Callable', function () { return true; }, null, null, function () { return 500; });
+    }
+
+    public function testAddContextException()
+    {
+        $context = new Context();
+        $e = new AddContextException();
+        $callable = function () use ($e) {
+            throw $e;
+        };
+
+        $this->logger->logCallable('Testing Exception Context', $callable, $context, true);
+
+        $this->assertEquals('added', $context['test']);
     }
 }
