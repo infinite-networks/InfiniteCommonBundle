@@ -50,6 +50,10 @@ class IntervalFormatter
                 $spec .= $interval->s . 'S';
             }
         }
+        
+        if ($spec === 'P') {
+            return null;
+        }
 
         return $spec;
     }
