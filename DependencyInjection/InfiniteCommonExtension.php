@@ -11,7 +11,8 @@
 
 namespace Infinite\CommonBundle\DependencyInjection;
 
-use Symfony\Component\DependencyInjection\DefinitionDecorator;
+use Symfony\Component\DependencyInjection\ChildDefinition;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -81,9 +82,11 @@ class InfiniteCommonExtension extends Extension
         }
 
         foreach ($config['menus'] as $menu) {
-            $definition = new DefinitionDecorator('infinite_common.menu_prototype');
-            $definition->setFactoryService('infinite_common.menu.builder');
-            $definition->setFactoryMethod('buildMenu');
+            $definition = new ChildDefinition('infinite_common.menu_prototype');
+            $definition->setFactory([
+                new Reference('infinite_common.menu.builder'),
+                'buildMenu',
+            ]);
             $definition->addArgument($menu);
             $definition->addTag('knp_menu.menu', array(
                 'alias' => $menu,

@@ -13,7 +13,7 @@ namespace Infinite\CommonBundle\EventListener;
 
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\ConsoleEvents;
-use Symfony\Component\Console\Event\ConsoleExceptionEvent;
+use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\Console\Event\ConsoleTerminateEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
@@ -26,10 +26,10 @@ class ConsoleLoggingListener implements EventSubscriberInterface
         $this->logger = $logger;
     }
 
-    public function exception(ConsoleExceptionEvent $event)
+    public function error(ConsoleErrorEvent $event)
     {
         $command = $event->getCommand();
-        $exception = $event->getException();
+        $exception = $event->getError();
         $input = $event->getInput();
 
         $message = sprintf(
@@ -75,7 +75,7 @@ class ConsoleLoggingListener implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return array(
-            ConsoleEvents::EXCEPTION => 'exception',
+            ConsoleEvents::ERROR => 'error',
             ConsoleEvents::TERMINATE => 'terminate'
         );
     }
