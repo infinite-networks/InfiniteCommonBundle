@@ -32,6 +32,10 @@ class ConsoleLoggingListener implements EventSubscriberInterface
         $exception = $event->getError();
         $input = $event->getInput();
 
+        if (!$command) {
+            return;
+        }
+
         $message = sprintf(
             '%s: %s (uncaught exception) at %s line %s while running console command `%s`',
             get_class($exception),
@@ -53,7 +57,7 @@ class ConsoleLoggingListener implements EventSubscriberInterface
         $command = $event->getCommand();
         $input = $event->getInput();
 
-        if ($statusCode === 0) {
+        if ($statusCode === 0 || !$command) {
             return;
         }
 
