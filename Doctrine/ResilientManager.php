@@ -11,9 +11,10 @@
 
 namespace Infinite\CommonBundle\Doctrine;
 
-use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMException;
+use Doctrine\Persistence\ManagerRegistry;
+use Sentry\State\HubInterface;
 
 class ResilientManager implements ResilientManagerInterface
 {
@@ -23,18 +24,18 @@ class ResilientManager implements ResilientManagerInterface
     private $managerRegistry;
 
     /**
-     * @var \Raven_Client
+     * @var HubInterface|null
      */
-    private $raven;
+    private $sentry;
 
     /**
      * @param ManagerRegistry $managerRegistry
-     * @param \Raven_Client $raven
+     * @param HubInterface|null $sentry
      */
-    public function __construct(ManagerRegistry $managerRegistry, \Raven_Client $raven = null)
+    public function __construct(ManagerRegistry $managerRegistry, ?HubInterface $sentry = null)
     {
         $this->managerRegistry = $managerRegistry;
-        $this->raven = $raven;
+        $this->sentry = $sentry;
     }
 
     /**
@@ -77,8 +78,8 @@ class ResilientManager implements ResilientManagerInterface
                 throw $e;
             }
 
-            if ($this->raven) {
-                $this->raven->captureException($e);
+            if ($this->sentry) {
+                $this->sentry->captureException($e);
             }
         } catch (\Exception $e) {
             $em->rollback();

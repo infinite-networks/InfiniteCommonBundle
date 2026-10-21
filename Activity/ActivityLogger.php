@@ -12,6 +12,8 @@
 namespace Infinite\CommonBundle\Activity;
 
 use Psr\Log\LoggerInterface;
+use Sentry\State\HubInterface;
+use Sentry\State\Scope;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class ActivityLogger implements ActivityLoggerInterface
@@ -41,9 +43,9 @@ class ActivityLogger implements ActivityLoggerInterface
     /**
      * The exception reporting service.
      *
-     * @var \Raven_Client
+     * @var HubInterface|null
      */
-    private $raven;
+    private $sentry;
 
     /**
      * The log level for a successful activity.
@@ -54,15 +56,15 @@ class ActivityLogger implements ActivityLoggerInterface
 
     /**
      * @param LoggerInterface $logger
-     * @param \Raven_Client $raven
+     * @param HubInterface|null $sentry
      * @param int $successLevel
      * @param int $exceptionLevel
      */
-    public function __construct(LoggerInterface $logger, \Raven_Client $raven, $successLevel = 300, $exceptionLevel = 400)
+    public function __construct(LoggerInterface $logger, ?HubInterface $sentry, $successLevel = 300, $exceptionLevel = 400)
     {
         $this->exceptionLevel = $exceptionLevel;
         $this->logger = $logger;
-        $this->raven = $raven;
+        $this->sentry = $sentry;
         $this->successLevel = $successLevel;
     }
 
@@ -86,7 +88,7 @@ class ActivityLogger implements ActivityLoggerInterface
         try {
             $result = $callable($context);
             $context->setResult($result);
-        } catch (\PHPUnit_Exception $e) {
+        } catch (\PHPUnit\Exception $e) {
             throw $e;
         } catch (\Mockery\Exception $e) {
             throw $e;
@@ -132,7 +134,12 @@ class ActivityLogger implements ActivityLoggerInterface
         }
 
         if ($swallow) {
-            $this->raven->captureException($wrapped, ['extra' => $wrapped->getContext()->toArray()]);
+            if ($this->sentry) {
+                $this->sentry->withScope(function (Scope $scope) use ($wrapped): void {
+                    $scope->setExtras($wrapped->getContext()->toArray());
+                    $this->sentry->captureException($wrapped);
+                });
+            }
 
             return null;
         }

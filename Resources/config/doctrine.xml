@@ -5,7 +5,7 @@
     <services>
         <service id="infinite_common.doctrine.resilient_manager" class="Infinite\CommonBundle\Doctrine\ResilientManager">
             <argument type="service" id="doctrine" />
-            <argument type="service" id="infinite_common.raven" on-invalid="null" />
+            <argument type="service" id="Sentry\State\HubInterface" on-invalid="null" />
         </service>
     </services>
 </container>

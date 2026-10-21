@@ -11,12 +11,15 @@
 
 namespace Infinite\CommonBundle\Tests\Doctrine;
 
-use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMException;
+use Doctrine\Persistence\ManagerRegistry;
 use Infinite\CommonBundle\Doctrine\ResilientManager;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+use Sentry\State\HubInterface;
 
-class ResilientManagerTest extends \PHPUnit_Framework_TestCase
+class ResilientManagerTest extends TestCase
 {
     /**
      * @var ResilientManager
@@ -24,21 +27,21 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
     private $manager;
 
     /**
-     * @var \Raven_Client|\PHPUnit_Framework_MockObject_MockObject
+     * @var HubInterface|MockObject
      */
-    private $raven;
+    private $sentry;
 
     /**
-     * @var ManagerRegistry|\PHPUnit_Framework_MockObject_MockObject
+     * @var ManagerRegistry|MockObject
      */
     private $registry;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->registry = $this->createMock(ManagerRegistry::class);
-        $this->raven = $this->createMock(\Raven_Client::class);
+        $this->sentry = $this->createMock(HubInterface::class);
 
-        $this->manager = new ResilientManager($this->registry, $this->raven);
+        $this->manager = new ResilientManager($this->registry, $this->sentry);
     }
 
     public function testResettingManagers()
@@ -59,11 +62,9 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($open, $manager);
     }
 
-    /**
-     * @expectedException \RuntimeException
-     */
     public function testFailingToResetManagers()
     {
+        $this->expectException(\RuntimeException::class);
         $closed = $this->getEntityManager(false);
         $closed2 = $this->getEntityManager(false);
 
@@ -146,7 +147,7 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
             ->willThrowException($e = new ORMException());
         $open->expects($this->once())
             ->method('rollback');
-        $this->raven->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('captureException')
             ->with($e);
 
@@ -215,11 +216,9 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
         $this->manager->wrapPersist($obj, [$mock, 'onFailure'], 'named');
     }
 
-    /**
-     * @expectedException \LogicException
-     */
     public function testWrapClosureRollsBackAndThrowsOnOtherExceptions()
     {
+        $this->expectException(\LogicException::class);
         $e = new \LogicException;
 
         $mock = $this->createMock(TestObj::class);
@@ -240,11 +239,9 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
         }, [$mock, 'onFailure']);
     }
 
-    /**
-     * @expectedException \Doctrine\ORM\ORMException
-     */
     public function testWrapClosureRethrowsORMException()
     {
+        $this->expectException(\Doctrine\ORM\ORMException::class);
         $open = $this->getEntityManager(true);
 
         $this->registry->expects($this->exactly(1))
@@ -267,11 +264,9 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
         $this->manager->wrapCallable([$mock, 'callback'], [$mock, 'onFailure'], 'named');
     }
 
-    /**
-     * @expectedException \Doctrine\ORM\ORMException
-     */
     public function testWrapPersistRethrowsOnFailure()
     {
+        $this->expectException(\Doctrine\ORM\ORMException::class);
         $open = $this->getEntityManager(true);
 
         $this->registry->expects($this->exactly(1))
@@ -295,7 +290,7 @@ class ResilientManagerTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @param bool $open
-     * @return EntityManagerInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @return EntityManagerInterface|MockObject
      */
     private function getEntityManager($open)
     {

@@ -52,11 +52,12 @@ class Context implements \ArrayAccess
         $this->context = array_merge($previousContext->context, $this->context);
     }
 
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->context[$offset]);
     }
 
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->offsetExists($offset) ?
@@ -64,12 +65,12 @@ class Context implements \ArrayAccess
             null;
     }
 
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         $this->context[$offset] = $value;
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         unset($this->context[$offset]);
     }

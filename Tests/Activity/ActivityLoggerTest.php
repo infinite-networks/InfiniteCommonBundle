@@ -15,9 +15,13 @@ use Infinite\CommonBundle\Activity\ActivityLogger;
 use Infinite\CommonBundle\Activity\Context;
 use Infinite\CommonBundle\Activity\FailedActivityException;
 use Infinite\CommonBundle\Tests\AddContextException;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Sentry\State\HubInterface;
+use Sentry\State\Scope;
 
-class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
+class ActivityLoggerTest extends TestCase
 {
     /**
      * @var ActivityLogger
@@ -25,25 +29,28 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
     private $logger;
 
     /**
-     * @var LoggerInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @var LoggerInterface|MockObject
      */
     private $psrLogger;
 
     /**
-     * @var \Raven_Client|\PHPUnit_Framework_MockObject_MockObject
+     * @var HubInterface|MockObject
      */
-    private $raven;
+    private $sentry;
 
     /**
      * Sets up the fixture, for example, open a network connection.
      * This method is called before a test is executed.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->psrLogger = $this->createMock(LoggerInterface::class);
-        $this->raven = $this->createMock(\Raven_Client::class);
+        $this->sentry = $this->createMock(HubInterface::class);
+        $this->sentry->method('withScope')->willReturnCallback(static function (callable $callback) {
+            return $callback(new Scope());
+        });
 
-        $this->logger = new ActivityLogger($this->psrLogger, $this->raven);
+        $this->logger = new ActivityLogger($this->psrLogger, $this->sentry);
     }
 
     public function testLogCallableSucceedsOnNull()
@@ -128,8 +135,8 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
         try {
             $this->logger->logCallable('Testing Failed Callable', function () use ($innerException) { throw $innerException; });
         } catch (FailedActivityException $e) {
-            $this->assertContains('Failure!', $e->getMessage());
-            $this->assertContains('Testing Failed Callable', $e->getMessage());
+            $this->assertStringContainsString('Failure!', $e->getMessage());
+            $this->assertStringContainsString('Testing Failed Callable', $e->getMessage());
             $this->assertSame($innerException, $e->getPrevious());
 
             return;
@@ -155,8 +162,8 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
                 throw $innerException;
             });
         } catch (FailedActivityException $e) {
-            $this->assertContains('Failure!', $e->getMessage());
-            $this->assertContains('Testing Failed Callable', $e->getMessage());
+            $this->assertStringContainsString('Failure!', $e->getMessage());
+            $this->assertStringContainsString('Testing Failed Callable', $e->getMessage());
             $this->assertSame($innerException, $e->getPrevious());
             $this->assertEquals('wat', $e->getContext()['huh']);
 
@@ -184,16 +191,16 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
 
     public function testSwallowException()
     {
-        $this->raven->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('captureException')
-            ->with($this->isInstanceOf('Infinite\\CommonBundle\\Activity\\FailedActivityException'), ['extra' => ['test' => 'hello']]);
+            ->with($this->isInstanceOf('Infinite\\CommonBundle\\Activity\\FailedActivityException'));
 
         $this->logger->logCallable('Outer', function () {
             throw new \Exception;
         }, ['test' => 'hello'], function ($e, $wrapped) {
             $this->assertInstanceOf('Exception', $e);
             $this->assertInstanceOf('Infinite\\CommonBundle\\Activity\\FailedActivityException', $wrapped);
-            $this->assertContains('Outer', $wrapped->getActivityDescription());
+            $this->assertStringContainsString('Outer', $wrapped->getActivityDescription());
 
             return true;
         });
@@ -207,9 +214,9 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
                 [400, $this->stringContains('Inner'), $this->isType('array')],
                 [300, $this->stringContains('Outer'), $this->isType('array')]
             );
-        $this->raven->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('captureException')
-            ->with($this->isInstanceOf('Infinite\\CommonBundle\\Activity\\FailedActivityException'), ['extra' => []]);
+            ->with($this->isInstanceOf('Infinite\\CommonBundle\\Activity\\FailedActivityException'));
 
         $this->logger->logCallable('Outer', function () {
             $this->logger->logCallable('Inner', function () {
@@ -251,9 +258,9 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
     {
         try {
             $this->logger->logCallable('Inner', function () {
-                throw new \PHPUnit_Framework_Exception;
+                throw new \PHPUnit\Framework\Exception;
             }, [], function () { return true; });
-        } catch (\PHPUnit_Exception $e) {
+        } catch (\PHPUnit\Exception $e) {
             return;
         }
 
@@ -265,7 +272,7 @@ class ActivityLoggerTest extends \PHPUnit_Framework_TestCase
         $this->psrLogger->expects($this->never())
             ->method('log');
 
-        $this->logger->logCallable('Test', function () { xdebug_break(); }, [], null, false);
+        $this->logger->logCallable('Test', function () { }, [], null, false);
     }
 
     public function testRemovingContext()
