@@ -11,15 +11,19 @@
 
 namespace Infinite\CommonBundle\Tests\Activity;
 
-use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMException;
+use Doctrine\Persistence\ManagerRegistry;
 use Infinite\CommonBundle\Activity\ActivityLogger;
 use Infinite\CommonBundle\Activity\ActivityLoggerInterface;
 use Infinite\CommonBundle\Activity\DoctrineActivityLogger;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Sentry\State\HubInterface;
+use Sentry\State\Scope;
 
-class DoctrineActivityLoggerTest extends \PHPUnit_Framework_TestCase
+class DoctrineActivityLoggerTest extends TestCase
 {
     /**
      * @var DoctrineActivityLogger
@@ -27,27 +31,27 @@ class DoctrineActivityLoggerTest extends \PHPUnit_Framework_TestCase
     private $logger;
 
     /**
-     * @var EntityManagerInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @var EntityManagerInterface|MockObject
      */
     private $open;
 
     /**
-     * @var LoggerInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @var LoggerInterface|MockObject
      */
     private $psrLogger;
 
     /**
-     * @var ManagerRegistry|\PHPUnit_Framework_MockObject_MockObject
+     * @var ManagerRegistry|MockObject
      */
     public $managerRegistry;
 
     /**
-     * @var \Raven_Client|\PHPUnit_Framework_MockObject_MockObject
+     * @var HubInterface|MockObject
      */
-    private $raven;
+    private $sentry;
 
     /**
-     * @var ActivityLoggerInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @var ActivityLoggerInterface|MockObject
      */
     private $wrappedLogger;
 
@@ -55,11 +59,14 @@ class DoctrineActivityLoggerTest extends \PHPUnit_Framework_TestCase
      * Sets up the fixture, for example, open a network connection.
      * This method is called before a test is executed.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->managerRegistry = $this->createMock(ManagerRegistry::class);
         $this->psrLogger = $this->createMock(LoggerInterface::class);
-        $this->raven = $this->createMock(\Raven_Client::class);
+        $this->sentry = $this->createMock(HubInterface::class);
+        $this->sentry->method('withScope')->willReturnCallback(static function (callable $callback) {
+            return $callback(new Scope());
+        });
 
         $this->open = $this->createMock(EntityManagerInterface::class);
         $this->open->expects($this->any())
@@ -70,7 +77,7 @@ class DoctrineActivityLoggerTest extends \PHPUnit_Framework_TestCase
             ->with(null)
             ->willReturn($this->open);
 
-        $this->wrappedLogger = new ActivityLogger($this->psrLogger, $this->raven);
+        $this->wrappedLogger = new ActivityLogger($this->psrLogger, $this->sentry);
         $this->logger = new DoctrineActivityLogger($this->wrappedLogger, $this->managerRegistry);
     }
 
@@ -92,11 +99,9 @@ class DoctrineActivityLoggerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('hello', $result);
     }
 
-    /**
-     * @expectedException \Infinite\CommonBundle\Activity\FailedActivityException
-     */
     public function testLogCallableRollbackOnFailure()
     {
+        $this->expectException(\Infinite\CommonBundle\Activity\FailedActivityException::class);
         $this->open->expects($this->once())
             ->method('beginTransaction');
         $this->open->expects($this->never())

@@ -11,7 +11,7 @@
 
 namespace Infinite\CommonBundle\Activity;
 
-use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityManagerInterface;
 
 class DoctrineActivityLogger implements ActivityLoggerInterface
@@ -51,7 +51,7 @@ class DoctrineActivityLogger implements ActivityLoggerInterface
 
     /**
      * @param $name
-     * @return \Doctrine\Common\Persistence\ObjectManager
+     * @return \Doctrine\Persistence\ObjectManager
      */
     private function getManager($name)
     {

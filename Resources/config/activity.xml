@@ -5,7 +5,7 @@
     <services>
         <service id="infinite_common.activity_logger.inner" class="Infinite\CommonBundle\Activity\ActivityLogger" public="true">
             <argument type="service" id="infinite_common.activity_logger.logger" />
-            <argument type="service" id="infinite_common.raven" on-invalid="null" />
+            <argument type="service" id="Sentry\State\HubInterface" on-invalid="null" />
             <argument>%infinite_common.activity_logger.success_level%</argument>
             <argument>%infinite_common.activity_logger.exception_level%</argument>
         </service>
